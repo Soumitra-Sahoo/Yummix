@@ -5,19 +5,17 @@ import upload from '../config/cloudinary.js';
 const foodRouter = express.Router();
 
 foodRouter.get("/list", listFood);
-foodRouter.post(
-  "/add",
-  (req, res, next) => {
-    console.log("Incoming /add request body:", req.body);
+const uploadMiddleware = (req, res, next) => {
+  upload.single("image")(req, res, (err) => {
+    if (err) {
+      console.error("Upload Error:", err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
     next();
-  },
-  upload.single('image'),
-  (req, res, next) => {
-    console.log("Uploaded image file:", req.file);
-    next();
-  },
-  addFood
-);
+  });
+};
+
+foodRouter.post("/add", uploadMiddleware, addFood);
 foodRouter.post("/remove", removeFood);
 
 export default foodRouter;
