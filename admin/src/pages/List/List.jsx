@@ -47,17 +47,18 @@ const List = () => {
             <b>Price</b>
             <b>Action</b>
           </div>
-          {list.map((item,index)=>{
-            return (
-              <div key={index} className='list-table-format'>
-                <img src={`${url}/images/`+item.image} alt="" />
-                <p>{item.name}</p>
-                <p>{item.category}</p>
-                <p>₹{item.price}</p>
-                <p className='cursor' onClick={()=>removeFood(item._id)}>X</p>
-              </div>
-            )
-          })}
+{list.map((item,index)=>{
+  return (
+    <div key={index} className='list-table-format'>
+      <img src={item.image || placeholder} alt={item.name} />
+      <p>{item.name}</p>
+      <p>{item.category}</p>
+      <p>₹{item.price}</p>
+      <p className='cursor' onClick={()=>removeFood(item._id)}>X</p>
+    </div>
+  )
+})}
+
         </div>
     </div>
   )
