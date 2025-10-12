@@ -15,8 +15,19 @@ const port = process.env.PORT || 4000;
 // middlewares
 app.use(express.json())
 app.use(cors({
-    origin: ["https://yummix-frontend.vercel.app", "https://yummix-admin.vercel.app", "http://localhost:5173", "http://localhost:5174"]
-}))
+  origin: [
+    "https://yummix-frontend.vercel.app",
+    "https://yummix-admin.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:5174"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
+
+// Handle Preflight Requests (Important on Vercel)
+app.options("*", cors());
 
 // db connection
 connectDB()
