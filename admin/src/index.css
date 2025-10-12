@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+*{
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: Roboto;
+}
+body{
+  min-height: 100vh;
+  background-color: #FCFCFC;
+}
+a{
+  text-decoration: none;
+  color: inherit;
+}
+hr{
+  border: none;
+  height: 1px;
+  background-color: #A9A9A9;
+}
+.app-content{
+  display: flex;
+}
+.flex-col{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cursor{
+  cursor: pointer;
+}
