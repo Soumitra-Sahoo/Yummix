@@ -1,69 +1,57 @@
 import foodModel from "../models/foodModel.js";
 import { v2 as cloudinary } from 'cloudinary';
 
-// all food list
+// list all foods
 const listFood = async (req, res) => {
-    try {
-        const foods = await foodModel.find({})
-        res.json({ success: true, data: foods })
-    } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: "Error" })
-    }
+  try {
+    const foods = await foodModel.find({});
+    res.json({ success: true, data: foods });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
 
-}
-
+// add food
 const addFood = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: "Image file is required" });
-    }
-
-    const imageUrl = req.file.path; // This should already be Cloudinary URL
+    if (!req.file) return res.status(400).json({ success: false, message: "Image file is required" });
 
     const food = new foodModel({
       name: req.body.name,
       description: req.body.description,
       price: req.body.price,
       category: req.body.category,
-      image: imageUrl.startsWith("http") 
-        ? imageUrl 
-        : `https://yummix-backend.vercel.app/${imageUrl}`,
+      image: req.file.path,             
+      imagePublicId: req.file.filename, 
     });
 
     await food.save();
-    res.json({ success: true, message: "Food Added" });
+    res.status(200).json({ success: true, message: "Food added successfully", data: food });
   } catch (error) {
     console.error("Error adding food:", error);
     res.status(500).json({ success: false, message: error.message || "Server Error" });
   }
 };
 
-
-// delete food
+// remove food
 const removeFood = async (req, res) => {
-    try {
-        const food = await foodModel.findById(req.body.id);
-        if (!food) {
-            return res.status(404).json({ success: false, message: "Food not found" });
-        }
+  try {
+    const food = await foodModel.findById(req.body.id);
+    if (!food) return res.status(404).json({ success: false, message: "Food not found" });
 
-        // Extract public_id from the Cloudinary URL
-        const imageUrl = food.image;
-        const imagePublicId = imageUrl.split('/').pop().split('.')[0];
-        
-        // Delete the image from Cloudinary
-        await cloudinary.uploader.destroy(imagePublicId);
-
-        // Delete the food item from the database
-        await foodModel.findByIdAndDelete(req.body.id);
-
-        res.json({ success: true, message: "Food Removed" });
-
-    } catch (error) {
-        console.error("Error removing food:", error);
-        res.status(500).json({ success: false, message: "Error removing food" });
+    // Delete image from Cloudinary using stored public_id
+    if (food.imagePublicId) {
+      await cloudinary.uploader.destroy(food.imagePublicId);
     }
-}
 
-export { listFood, addFood, removeFood }
+    await foodModel.findByIdAndDelete(req.body.id);
+
+    res.json({ success: true, message: "Food Removed" });
+  } catch (error) {
+    console.error("Error removing food:", error);
+    res.status(500).json({ success: false, message: "Error removing food" });
+  }
+};
+
+export { listFood, addFood, removeFood };
