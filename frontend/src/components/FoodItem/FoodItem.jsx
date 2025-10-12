@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import './FoodItem.css';
 import { assets } from '../../assets/assets';
 import { StoreContext } from '../../Context/StoreContext';
-import placeholder from '../../assets/placeholder.png'; // fallback image
+import placeholder from '../../assets/placeholder.webp'; // fallback image
 
 const FoodItem = ({ image, name, price, desc, id }) => {
   const [itemCount, setItemCount] = useState(0);
