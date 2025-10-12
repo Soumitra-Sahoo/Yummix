@@ -15,4 +15,4 @@ export const assets = {
     list_icon
 }
 
-export const url = "http://localhost:4000"; // Backend 
+export const url = "https://yummix-sigma.vercel.app"; // Backend 
