@@ -13,19 +13,22 @@ const listFood = async (req, res) => {
 
 }
 
-// add food
 const addFood = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: "Image file is required" });
     }
 
+    const imageUrl = req.file.path; // This should already be Cloudinary URL
+
     const food = new foodModel({
       name: req.body.name,
       description: req.body.description,
       price: req.body.price,
       category: req.body.category,
-      image: req.file.path, // Multer / Cloudinary uploaded file path
+      image: imageUrl.startsWith("http") 
+        ? imageUrl 
+        : `https://yummix-backend.vercel.app/${imageUrl}`,
     });
 
     await food.save();
@@ -35,6 +38,7 @@ const addFood = async (req, res) => {
     res.status(500).json({ success: false, message: error.message || "Server Error" });
   }
 };
+
 
 // delete food
 const removeFood = async (req, res) => {
