@@ -45,7 +45,7 @@ Yummix is a full-featured, responsive food delivery application built using the 
 
  Project Structure
 ```bash
-Tomato/
+Yummix/
 │
 ├── client/                  # Frontend code (React)
 │   ├── public/
