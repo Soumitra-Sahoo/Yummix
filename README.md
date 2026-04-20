@@ -5,7 +5,7 @@ Yummix is a full-featured, responsive food delivery application built using the 
  Features
 
  Customer Interface (Frontend)
-- Responsive Design: Developed with React, Tomato offers a fully responsive interface that adapts to various devices, from desktops to mobile screens, ensuring an optimized user experience.
+- Responsive Design: Developed with React, Yummix offers a fully responsive interface that adapts to various devices, from desktops to mobile screens, ensuring an optimized user experience.
 - User Authentication: Secure user login and registration using JSON Web Tokens (JWT) to manage sessions and protect user data.
 - Browse and Search: Users can browse restaurants, view menus, and search for food items by category, popularity, or dietary preference.
 - Order Management: Customers can place orders, select their preferred delivery address, and track the status of their orders in real-time.
