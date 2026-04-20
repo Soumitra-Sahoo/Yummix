@@ -95,6 +95,34 @@ position: relative;
     height: 1px;
     border: none;
 }
+
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-box-large {
+  width: 300px;
+  padding: 10px 15px;
+  border: 2px solid black;
+  border-radius: 25px;
+  outline: none;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.search-box-large:focus {
+  width: 350px;
+}
+
+.close-btn {
+  position: absolute;
+  right: 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
 @media (max-width:1050px) {
     .navbar .logo {
         width: 140px;
