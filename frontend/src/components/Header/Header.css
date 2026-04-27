@@ -1,12 +1,28 @@
 .header {
     height: 34vw;
-    margin: 30px auto;
-    background: url('/header_img.png') no-repeat center center;
+    margin: 10px auto;
     background-size: cover;
     position: relative;
     border-radius: 20px;
     overflow: hidden;
-    clip-path: inset(0 round 30px); /* ensures the background is clipped to the border radius */
+    clip-path: inset(0 round 30px); 
+    cursor: pointer;
+}
+
+.slider-track {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.7s ease-in-out;
+}
+
+
+.slide {
+    min-width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    position: relative;
 }
 
 .header-contents{
@@ -18,17 +34,19 @@
     max-width: 50%;
     bottom: 10%;
     left: 6vw;
-    animation: fadeIn 3s;
 }
+
 .header-contents h2{
     font-weight:500;
     color: white;
     font-size: max(4.5vw,22px);
 }
+
 .header-contents p{
     color: white;
     font-size: 1vw;
 }
+
 .header-contents button{
     border: none;
     color: #747474;
@@ -38,6 +56,31 @@
     font-size: max(1vw,13px);
     border-radius: 50px;
 }
+
+.dots {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    background: white;
+    opacity: 0.5;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.dot.active {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
 @media (max-width:1050px) {
     .header{
         height: 38vw;
