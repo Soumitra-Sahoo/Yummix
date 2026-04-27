@@ -8,9 +8,8 @@ import orderRouter from "./routes/orderRoute.js";
 import "dotenv/config";
 
 const app = express();
-const port = process.env.PORT || 4000;
 
-// Middlewares
+// CORS
 app.use(cors({
   origin: [
     "https://yummix-frontend.vercel.app",
@@ -18,29 +17,23 @@ app.use(cors({
     "http://localhost:5173",
     "http://localhost:5174"
   ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
+
 app.options("*", cors());
+
 app.use(express.json());
 
-// Proper startup
-const startServer = async () => {
-  try {
-    await connectDB(); 
+// DB connect
+await connectDB();
 
-    app.use("/api/user", userRouter);
-    app.use("/api/food", foodRouter);
-    app.use("/images", express.static("uploads"));
-    app.use("/api/cart", cartRouter);
-    app.use("/api/order", orderRouter);
+// Routes
+app.use("/api/user", userRouter);
+app.use("/api/food", foodRouter);
+app.use("/images", express.static("uploads"));
+app.use("/api/cart", cartRouter);
+app.use("/api/order", orderRouter);
 
-    app.get("/", (req, res) => res.send("API Working"));
+app.get("/", (req, res) => res.send("API Working"));
 
-  } catch (error) {
-    console.error("Unable to start server:", error.message);
-  }
-};
-
-startServer();
+export default app;
