@@ -38,7 +38,6 @@ const startServer = async () => {
 
     app.get("/", (req, res) => res.send("API Working"));
 
-    app.listen(port, () => console.log(`Server running on http://localhost:${port}`));
   } catch (error) {
     console.error("Unable to start server:", error.message);
   }
