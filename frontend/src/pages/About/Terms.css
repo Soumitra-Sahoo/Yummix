@@ -1,0 +1,30 @@
+.terms {
+  padding: 40px 10%;
+  line-height: 1.7;
+}
+
+.terms h1 {
+  color: #ff4d4d;
+  margin-bottom: 10px;
+}
+
+.last-updated {
+  color: #777;
+  margin-bottom: 30px;
+}
+
+.terms section {
+  margin-bottom: 25px;
+}
+
+.terms h2 {
+  margin-bottom: 8px;
+}
+
+.terms ul {
+  padding-left: 20px;
+}
+
+.terms li {
+  margin-bottom: 5px;
+}

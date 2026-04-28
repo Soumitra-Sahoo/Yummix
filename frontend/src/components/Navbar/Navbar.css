@@ -17,9 +17,21 @@
     font-size: 18px;
 }
 
-.navbar-menu .active {
-    padding-bottom: 2px;
-    border-bottom: 2px solid #49557E;
+.navbar-menu span {
+  cursor: pointer;
+}
+
+.navbar-menu a,
+.navbar-menu span {
+  text-decoration: none;
+  color: #49557E;
+  cursor: pointer;
+}
+
+.navbar-menu a.active,
+.navbar-menu span.active {
+  padding-bottom: 2px;
+  border-bottom: 2px solid #49557E;
 }
 
 .navbar-right {
@@ -171,7 +183,11 @@ position: relative;
 }
 
 @media (max-width:750px) {
-    .navbar-menu {
-        display: none;
-    }
+  .navbar-menu {
+    display: none;
+  }
+
+  .navbar-right {
+    gap: 15px;
+  }
 }

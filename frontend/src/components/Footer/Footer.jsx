@@ -1,6 +1,7 @@
 import React from 'react'
 import './Footer.css'
 import { assets } from '../../assets/assets'
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -18,20 +19,20 @@ const Footer = () => {
         <div className="footer-content-center">
             <h2>About Us</h2>
             <ul>
-                <li>Home</li>
-                <li>About us</li>
-                <li>Delivery</li>
-                <li>Partner With Us</li>
-                <li>Feedback</li>  
-                <li>Privacy Policy</li>
-                <li>Terms & Conditions</li>
+            <li><Link to="/">Home</Link></li>
+            <li><Link to="/about">About Us</Link></li>
+            <li><Link to="/delivery">Delivery</Link></li>
+            <li><Link to="/partner">Partner With Us</Link></li>
+            <li><Link to="/feedback">Feedback</Link></li>
+            <li><Link to="/privacy">Privacy Policy</Link></li>
+            <li><Link to="/terms">Terms & Conditions</Link></li>
             </ul>
         </div>
         <div className="footer-content-right">
             <h2>Support & Assistance</h2>
             <ul>
                 <li>+91-000000000</li>
-                <li>contact@yummix.com</li>
+                <li>support@yummix.com</li>
                 <li>Live Chat</li>
             </ul>
         </div>

@@ -1,0 +1,57 @@
+.feedback {
+  padding: 40px 8%;
+}
+
+/* HERO */
+.feedback-hero {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.feedback-hero h1 {
+  font-size: 38px;
+  color: #ff4d4d;
+}
+
+.feedback-hero p {
+  color: #555;
+}
+
+/* FORM */
+.feedback-form {
+  text-align: center;
+}
+
+.feedback-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 500px;
+  margin: auto;
+}
+
+.feedback-form input,
+.feedback-form textarea,
+.feedback-form select {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.feedback-form textarea {
+  min-height: 120px;
+}
+
+.feedback-form button {
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.feedback-form button:hover {
+  transform: scale(1.05);
+}

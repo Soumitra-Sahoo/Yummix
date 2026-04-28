@@ -1,0 +1,30 @@
+.privacy {
+  padding: 40px 10%;
+  line-height: 1.7;
+}
+
+.privacy h1 {
+  color: #ff4d4d;
+  margin-bottom: 10px;
+}
+
+.last-updated {
+  color: #777;
+  margin-bottom: 30px;
+}
+
+.privacy section {
+  margin-bottom: 25px;
+}
+
+.privacy h2 {
+  margin-bottom: 8px;
+}
+
+.privacy ul {
+  padding-left: 20px;
+}
+
+.privacy li {
+  margin-bottom: 5px;
+}

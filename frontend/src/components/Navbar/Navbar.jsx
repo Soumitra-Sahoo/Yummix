@@ -62,27 +62,51 @@ const Navbar = ({ setShowLogin, setSearchQuery }) => {
           >
             Home
           </Link>
-          <a
-            href="#explore-menu"
-            onClick={() => setMenu("menu")}
+          <span
+            onClick={() => {
+              setMenu("menu");
+              navigate("/");
+
+              setTimeout(() => {
+                document
+                  .getElementById("explore-menu")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }, 100);
+            }}
             className={`${menu === "menu" ? "active" : ""}`}
           >
             Menu
-          </a>
-          <a
-            href="#app-download"
-            onClick={() => setMenu("mob-app")}
+          </span>
+          <span
+            onClick={() => {
+              setMenu("mob-app");
+              navigate("/");
+
+              setTimeout(() => {
+                document
+                  .getElementById("app-download")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }, 100);
+            }}
             className={`${menu === "mob-app" ? "active" : ""}`}
           >
             Mobile App
-          </a>
-          <a
-            href="#footer"
-            onClick={() => setMenu("contact")}
+          </span>
+          <span
+            onClick={() => {
+              setMenu("contact");
+              navigate("/");
+
+              setTimeout(() => {
+                document
+                  .getElementById("footer")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }, 100);
+            }}
             className={`${menu === "contact" ? "active" : ""}`}
           >
             Contact Us
-          </a>
+          </span>
         </ul>
       )}
       <div className="navbar-right">
