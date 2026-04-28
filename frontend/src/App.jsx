@@ -16,6 +16,7 @@ import Partner from "./pages/About/Partner";
 import Feedback from "./pages/About/Feedback";
 import Privacy from "./pages/About/Privacy";
 import Terms from "./pages/About/Terms";
+import ScrollToTop from "./components/ScrollToTop";
 
 const App = () => {
 
@@ -24,6 +25,7 @@ const App = () => {
 
   return (
     <>
+    <ScrollToTop />
     <ToastContainer/>
     {showLogin?<LoginPopup setShowLogin={setShowLogin}/>:<></>}
       <div className='app'>
