@@ -15,4 +15,4 @@ export const assets = {
     list_icon
 }
 
-export const url = "https://yummix-backend.vercel.app"; // Backend 
+export const url = "https://yummix-backend.vercel.app"

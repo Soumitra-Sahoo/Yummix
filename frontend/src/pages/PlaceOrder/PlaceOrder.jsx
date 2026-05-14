@@ -35,8 +35,8 @@ const PlaceOrder = () => {
         let orderItems = [];
         food_list.map(((item) => {
             if (cartItems[item._id] > 0) {
-                let itemInfo = item;
-                itemInfo["quantity"] = cartItems[item._id];
+                let itemInfo = {...item};
+                itemInfo.quantity = cartItems[item._id];
                 orderItems.push(itemInfo)
             }
         }))
@@ -45,14 +45,15 @@ const PlaceOrder = () => {
             items: orderItems,
             amount: getTotalCartAmount() + 5,
         }
-        let response = await axios.post(url + "/api/order/place", orderData, { headers: { token } });
-        if (response.data.success) {
-            const { session_url } = response.data;
-            window.location.replace(session_url);
-        }
-        else {
-            toast.error("Something Went Wrong")
-        }
+   let response = await axios.post(url + "/api/order/place", orderData, { headers: { token } });
+
+    if (response.data.success) {
+    const { session_url } = response.data;
+    window.location.replace(session_url);
+    }
+    else {
+    toast.error("Something Went Wrong")
+    }
     }
 
     useEffect(() => {
@@ -91,13 +92,12 @@ const PlaceOrder = () => {
                     <div>
                         <div className="cart-total-details"><p>Subtotal</p><p>₹{getTotalCartAmount()}</p></div>
                         <hr />
-                        <div className="cart-total-details"><p>Delivery Fee</p><p>₹{getTotalCartAmount() === 0 ? 0 : 5}</p></div>
+                        <div className="cart-total-details"><p>Delivery Fee</p><p>₹{getTotalCartAmount() === 0 ? 0 : 17}</p></div>
                         <hr />
-                        <div className="cart-total-details"><b>Total</b><b>₹{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 5}</b></div>
+                        <div className="cart-total-details"><b>Total</b><b>₹{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 17}</b></div>
                     </div>
                 </div>
                 <button className='place-order-submit' type='submit'>Confirm & Pay</button>
-                <p className='demo-note'>*This is for demo purpose. Don't need to payment.</p>
             </div>
         </form>
     )

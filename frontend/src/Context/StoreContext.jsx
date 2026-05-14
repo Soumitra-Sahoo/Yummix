@@ -5,7 +5,7 @@ export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
 
-        const url = "https://yummix-backend.vercel.app"
+    const url = "https://yummix-backend.vercel.app"
     const [food_list, setFoodList] = useState([]);
     const [cartItems, setCartItems] = useState({});
     const [token, setToken] = useState("")
@@ -50,7 +50,7 @@ const StoreContextProvider = (props) => {
 
     const loadCartData = async (token) => {
         try {
-            const response = await axios.post(url + "/api/cart/get", {}, { headers: token });
+            const response = await axios.post(url + "/api/cart/get", {}, { headers: {token} });
             if (response.data.success) {
                 setCartItems(response.data.cartData);
             }
