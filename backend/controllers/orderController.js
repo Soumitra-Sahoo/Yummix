@@ -5,7 +5,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // config variables
 const currency = "inr";
-const deliveryCharge = 50;
+const deliveryCharge = 17;
 const frontend_URL = "https://yummix-admin.vercel.app/";
 
 // Placing User Order for Frontend
@@ -27,7 +27,7 @@ const placeOrder = async (req, res) => {
               product_data: {
                 name: item.name
               },
-              unit_amount: item.price*100*80
+              unit_amount: item.price*100
             },
             quantity: item.quantity
           }))
@@ -38,24 +38,26 @@ const placeOrder = async (req, res) => {
                 product_data:{
                     name:"Delivery Charge"
                 },
-                unit_amount: 5*80*100
+                unit_amount: 17 * 100
             },
             quantity:1
         })
         
           const session = await stripe.checkout.sessions.create({
-            success_url: `https://yummix-frontend.vercel.app/verify?success=true&orderId=${newOrder._id}`,
-            cancel_url: `https://yummix-frontend.vercel.app/verify?success=false&orderId=${newOrder._id}`,
+           success_url: `https://yummix-frontend.vercel.app/verify?success=true&orderId=${newOrder._id}`,
+           cancel_url: `https://yummix-frontend.vercel.app/verify?success=false&orderId=${newOrder._id}`,
             line_items: line_items,
             mode: 'payment',
           });
       
           res.json({success:true,session_url:session.url});
 
-    } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: "Error" })
-    }
+    }catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+}
 }
 
 // Listing Order for Admin panel
