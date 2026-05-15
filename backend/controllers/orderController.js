@@ -6,7 +6,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // config variables
 const currency = "inr";
 const deliveryCharge = 17;
-const frontend_URL = "https://yummix-admin.vercel.app/";
+const frontend_URL = "https://yummix-admin.vercel.app";
 
 // Placing User Order for Frontend
 const placeOrder = async (req, res) => {
@@ -83,12 +83,28 @@ const userOrders = async (req, res) => {
 }
 
 const updateStatus = async (req, res) => {
-    console.log(req.body);
+
     try {
-        await orderModel.findByIdAndUpdate(req.body.orderId, { status: req.body.status });
-        res.json({ success: true, message: "Status Updated" })
+        if (req.body.status === "Delivered") {
+ await orderModel.findByIdAndUpdate(req.body.orderId, {
+                status: req.body.status,
+                deliveredAt: new Date()
+            });
+        } else {
+            await orderModel.findByIdAndUpdate(req.body.orderId, {
+                status: req.body.status
+            });
+        }
+        res.json({
+            success: true, message: "Status Updated"
+        });
     } catch (error) {
-        res.json({ success: false, message: "Error" })
+        console.log(error);
+        res.json({
+            success: false,
+            message: "Error"
+        });
+
     }
 
 }
