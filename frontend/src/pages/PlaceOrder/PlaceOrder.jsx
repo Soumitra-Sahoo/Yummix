@@ -7,7 +7,6 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 
 const PlaceOrder = () => {
-
     const [data, setData] = useState({
         firstName: "",
         lastName: "",
@@ -15,7 +14,7 @@ const PlaceOrder = () => {
         street: "",
         city: "",
         state: "",
-        zipcode: "",
+        pincode: "",
         country: "",
         phone: ""
     })
@@ -29,6 +28,57 @@ const PlaceOrder = () => {
         const value = event.target.value
         setData(data => ({ ...data, [name]: value }))
     }
+
+    const fetchLocation = () => {
+
+    if (!navigator.geolocation) {
+        toast.error("Geolocation not supported");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            try {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                const response = await axios.get(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+                );
+
+                const address = response.data.address;
+                setData((prev) => ({
+                    ...prev,
+                    street:
+                        address.road ||
+                        address.suburb ||
+                        "",
+
+                    city:
+                        address.city ||
+                        address.town ||
+                        address.village ||
+                        "",
+
+                    state:
+                        address.state || "",
+
+                    country:
+                        address.country || "",
+
+                    pincode:
+                        address.postcode || ""
+                }));
+                toast.success("Location fetched");
+            } catch (error) {
+                console.log(error);
+                toast.error("Failed to fetch address");
+            }
+        },
+        () => {
+            toast.error("Location permission denied");
+        }
+    );
+};
 
     const placeOrder = async (e) => {
         e.preventDefault()
@@ -70,6 +120,9 @@ const PlaceOrder = () => {
         <form onSubmit={placeOrder} className='place-order'>
             <div className="place-order-left">
                 <p className='title'>Shipping Information</p>
+                <button type="button" className="location-btn" onClick={fetchLocation}>
+                     Use Current Location
+                 </button>
                 <div className="multi-field">
                     <input type="text" name='firstName' onChange={onChangeHandler} value={data.firstName} placeholder='First name' required />
                     <input type="text" name='lastName' onChange={onChangeHandler} value={data.lastName} placeholder='Last name' required />
@@ -81,7 +134,7 @@ const PlaceOrder = () => {
                     <input type="text" name='state' onChange={onChangeHandler} value={data.state} placeholder='State' required />
                 </div>
                 <div className="multi-field">
-                    <input type="text" name='zipcode' onChange={onChangeHandler} value={data.zipcode} placeholder='Zip code' required />
+                    <input type="text" name='pincode' onChange={onChangeHandler} value={data.pincode} placeholder='Pin code' required />
                     <input type="text" name='country' onChange={onChangeHandler} value={data.country} placeholder='Country' required />
                 </div>
                 <input type="text" name='phone' onChange={onChangeHandler} value={data.phone} placeholder='Phone' required />
