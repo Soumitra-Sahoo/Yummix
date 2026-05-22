@@ -1,4 +1,5 @@
 import express from 'express';
+import adminAuth from "../middleware/adminAuth.js";
 import { addFood, listFood, removeFood } from '../controllers/foodController.js';
 import upload from '../config/cloudinary.js';
 
@@ -15,7 +16,7 @@ const uploadMiddleware = (req, res, next) => {
   });
 };
 
-foodRouter.post("/add", uploadMiddleware, addFood);
-foodRouter.post("/remove", removeFood);
+foodRouter.post("/add", adminAuth, uploadMiddleware, addFood);
+foodRouter.post("/remove", adminAuth, removeFood);
 
 export default foodRouter;
