@@ -10,3 +10,16 @@
 .navbar .profile{
     width: 40px;
 }
+.navbar-right{
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.navbar-right button{
+    border: none;
+    padding: 8px 14px;
+    background: #f1e60d;
+    border-radius: 5px;
+    cursor: pointer;
+}

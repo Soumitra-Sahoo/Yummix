@@ -6,6 +6,7 @@ import userRouter from "./routes/userRoute.js";
 import foodRouter from "./routes/foodRoute.js";
 import cartRouter from "./routes/cartRoute.js";
 import orderRouter from "./routes/orderRoute.js";
+import adminRouter from "./routes/adminRoute.js";
 
 const app = express();
 
@@ -29,6 +30,7 @@ await connectDB();
 
 // Routes
 app.use("/api/user", userRouter);
+app.use("/api/admin", adminRouter);
 app.use("/api/food", foodRouter);
 app.use("/images", express.static("uploads"));
 app.use("/api/cart", cartRouter);
