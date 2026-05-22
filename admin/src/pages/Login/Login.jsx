@@ -7,7 +7,10 @@ import { url } from '../../assets/assets'
 
 const Login = ({ setToken }) => {
 
+    const [currState,setCurrState] = useState("Login")
+
     const [data,setData] = useState({
+        name:"",
         email:"",
         password:""
     })
@@ -15,6 +18,7 @@ const Login = ({ setToken }) => {
     const navigate = useNavigate();
 
     const onChangeHandler = (event)=>{
+
         const name = event.target.name;
         const value = event.target.value;
 
@@ -27,23 +31,40 @@ const Login = ({ setToken }) => {
 
         try {
 
+            let newUrl = url;
+
+            if(currState==="Login"){
+                newUrl += "/api/admin/login"
+            }else{
+                newUrl += "/api/user/register"
+            }
+
             const response = await axios.post(
-                `${url}/api/admin/login`,
+                newUrl,
                 data
             )
 
             if(response.data.success){
 
-                localStorage.setItem(
-                    "adminToken",
-                    response.data.token
-                )
+                if(currState==="Login"){
 
-                setToken(response.data.token)
+                    localStorage.setItem(
+                        "adminToken",
+                        response.data.token
+                    )
 
-                toast.success("Login Successful")
+                    setToken(response.data.token)
 
-                navigate("/add")
+                    navigate("/add")
+
+                }else{
+
+                    toast.success(
+                        "Signup Successful. Wait for admin approval."
+                    )
+
+                    setCurrState("Login")
+                }
 
             }else{
                 toast.error(response.data.message)
@@ -60,9 +81,24 @@ const Login = ({ setToken }) => {
     return (
         <div className='login'>
 
-            <form className='login-form' onSubmit={onSubmitHandler}>
+            <form
+                className='login-form'
+                onSubmit={onSubmitHandler}
+            >
 
-                <h2>Admin Login</h2>
+                <h2>
+                    Admin {currState}
+                </h2>
+
+                {currState==="Sign Up" &&
+                    <input
+                        type="text"
+                        name='name'
+                        placeholder='Name'
+                        onChange={onChangeHandler}
+                        required
+                    />
+                }
 
                 <input
                     type="email"
@@ -81,8 +117,38 @@ const Login = ({ setToken }) => {
                 />
 
                 <button type='submit'>
-                    Login
+
+                    {currState==="Login"
+                        ? "Login"
+                        : "Sign Up"
+                    }
+
                 </button>
+
+                {
+                    currState==="Login"
+                    ? <p>
+                        Create Account?
+                        <span
+                            onClick={()=>
+                                setCurrState("Sign Up")
+                            }
+                        >
+                            Sign Up
+                        </span>
+                      </p>
+
+                    : <p>
+                        Already have account?
+                        <span
+                            onClick={()=>
+                                setCurrState("Login")
+                            }
+                        >
+                            Login
+                        </span>
+                      </p>
+                }
 
             </form>
 
