@@ -30,3 +30,12 @@
     cursor: pointer;
     border-radius: 5px;
 }
+.login-form p{
+    text-align: center;
+}
+
+.login-form span{
+    color: blue;
+    cursor: pointer;
+    margin-left: 5px;
+}
