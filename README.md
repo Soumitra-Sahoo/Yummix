@@ -104,23 +104,41 @@ admin/
 
 ## Frontend
 - React.js
+- React Router DOM
+- Axios
 - CSS3
-- Bootstrap / Material UI
+- Tailwind CSS
 
 ## Backend
 - Node.js
 - Express.js
-- WebSockets
+- REST API Architecture
 
 ## Database
 - MongoDB
+- Mongoose
 
 ## Authentication & Security
 - JWT Authentication
+- bcrypt.js Password Hashing
 - Protected API Routes
 
 ## Payments
-- Stripe / PayPal Integration
+- Stripe Payment Gateway
+
+## Cloud & Media Storage
+- Cloudinary
+- Multer
+
+## Notifications & UI
+- React Toastify
+
+## Deployment
+- Vercel (Frontend & Admin Panel)
+- Render / Vercel (Backend)
+
+## Version Control
+- Git & GitHub
 
 ---
 
