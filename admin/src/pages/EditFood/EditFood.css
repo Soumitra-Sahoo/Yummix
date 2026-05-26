@@ -1,0 +1,149 @@
+.edit-food{
+    width: 100%;
+    padding: 40px;
+    background: #f8f8f8;
+    min-height: 100vh;
+}
+
+.edit-food-container{
+    background: white;
+    padding: 35px;
+    border-radius: 20px;
+    box-shadow: 0px 4px 20px rgba(0,0,0,0.06);
+    max-width: 900px;
+}
+
+.edit-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+}
+
+.edit-header h2{
+    font-size: 32px;
+    color: #222;
+}
+
+.edit-header p{
+    color: #777;
+    margin-top: 5px;
+}
+
+.back-btn{
+    border: none;
+    background: #f3f3f3;
+    padding: 12px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.back-btn:hover{
+    background: #e7e7e7;
+}
+
+.edit-food-form{
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.image-preview-section{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.image-preview-section img{
+    width: 250px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 18px;
+    border: 3px solid #f2f2f2;
+}
+
+.form-group{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-group label{
+    font-weight: 600;
+    color: #444;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select{
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid #dcdcdc;
+    font-size: 15px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus{
+    border-color: #facc15;
+    box-shadow: 0px 0px 0px 4px rgba(250,204,21,0.15);
+}
+
+.form-group textarea{
+    resize: none;
+    height: 120px;
+}
+
+.form-row{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.update-btn{
+    border: none;
+    background: #facc15;
+    color: black;
+    padding: 16px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.update-btn:hover{
+    background: #f4c400;
+    transform: translateY(-2px);
+}
+
+@media(max-width:768px){
+
+    .edit-food{
+        padding: 20px;
+    }
+
+    .edit-food-container{
+        padding: 25px;
+    }
+
+    .form-row{
+        grid-template-columns: 1fr;
+    }
+
+    .edit-header{
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .image-preview-section img{
+        width: 100%;
+        height: 220px;
+    }
+
+}

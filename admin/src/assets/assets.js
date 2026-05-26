@@ -5,6 +5,7 @@ import profile_image from './profile_image.png'
 import upload_area from './upload_area.png'
 import parcel_icon from './parcel_icon.png'
 import list_icon from './list_icon.png'
+import dashboard_icon from "./dashboard_icon.png";
 export const assets = {
     logo,
     add_icon,
@@ -12,7 +13,8 @@ export const assets = {
     profile_image,
     upload_area,
     parcel_icon,
-    list_icon
+    list_icon,
+    dashboard_icon
 }
 
 export const url = "https://yummix-backend.vercel.app"
