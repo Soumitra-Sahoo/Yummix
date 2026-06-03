@@ -37,9 +37,18 @@
 }
 
 .header-contents h2{
-    font-weight:500;
+    font-weight:400;
     color: white;
     font-size: max(4.5vw,22px);
+}
+.header-contents h3{
+    font-weight:400;
+    color: white;
+}
+
+.header-contents h4{
+    font-weight:400;
+    color: white;
 }
 
 .header-contents p{

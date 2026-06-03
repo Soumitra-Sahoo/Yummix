@@ -61,6 +61,8 @@ const Header = () => {
                 <p>
                   Get your favorite meals delivered fast with our food delivery app!
                 </p>
+                <h4>Get 15% off for first user</h4>
+                <h3>Use Code : FIRST15</h3>
                 <button>View Menu</button>
               </div>
             )}

@@ -14,7 +14,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const App = () => {
 
   const [token,setToken] = useState(
-    localStorage.getItem("adminToken") || ""
+    localStorage.getItem("restaurantToken") || ""
   )
 
   if(!token){
@@ -28,17 +28,11 @@ const App = () => {
 
   return (
     <div className='app'>
-
       <ToastContainer/>
-
       <Navbar setToken={setToken}/>
-
       <hr />
-
       <div className="app-content">
-
         <Sidebar/>
-
         <Routes>
           <Route path="/" element={<Dashboard/>}/>
           <Route path="/edit/:id" element={<EditFood />} />
@@ -47,7 +41,6 @@ const App = () => {
           <Route path="/orders" element={<Orders/>}/>
           <Route path="/dashboard" element={<Dashboard/>}/>
         </Routes>
-
       </div>
     </div>
   )

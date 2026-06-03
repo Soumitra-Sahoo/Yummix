@@ -8,7 +8,16 @@ const userSchema = new mongoose.Schema({
     isAdmin:{
         type:Boolean,
         default:false
-    }
+    },
+    cartRestaurantId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "restaurant",
+  default: null,
+},
+hasUsedFirstCoupon: {
+  type: Boolean,
+  default: false,
+},
 }, { minimize: false })
 
 const userModel = mongoose.models.user || mongoose.model("user", userSchema);

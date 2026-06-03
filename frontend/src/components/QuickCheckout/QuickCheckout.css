@@ -1,0 +1,57 @@
+.quick-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+
+  width: 260px;
+
+  background: white;
+
+  padding: 15px;
+
+  border-radius: 12px;
+
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+
+  z-index: 9999;
+
+  animation: slideUp 0.25s ease;
+}
+
+.quick-toast h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.quick-toast p {
+  margin: 8px 0 12px;
+  color: #555;
+}
+
+.quick-toast button {
+  width: 100%;
+
+  border: none;
+
+  background: tomato;
+
+  color: white;
+
+  padding: 10px;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

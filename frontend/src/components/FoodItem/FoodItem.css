@@ -69,3 +69,9 @@
     font-weight: 500;
     margin: 10px 0px;
 }
+.food-restaurant-name {
+  font-weight: 500;
+  font-size: 15px;
+  color: #373131;
+  margin-top: 4px;
+}

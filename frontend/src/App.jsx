@@ -17,6 +17,9 @@ import Feedback from "./pages/About/Feedback";
 import Privacy from "./pages/About/Privacy";
 import Terms from "./pages/About/Terms";
 import ScrollToTop from "./components/ScrollToTop";
+import Restaurant from "./pages/Restaurant/Restaurant";
+import QuickCheckout from "./components/QuickCheckout/QuickCheckout";
+import "./App.css";
 
 const App = () => {
 
@@ -28,8 +31,10 @@ const App = () => {
     <ScrollToTop />
     <ToastContainer/>
     {showLogin?<LoginPopup setShowLogin={setShowLogin}/>:<></>}
+     <div className="app-layout">
       <div className='app'>
         <Navbar setShowLogin={setShowLogin} setSearchQuery={setSearchQuery} />
+        <QuickCheckout />
         <Routes>
           <Route path='/' element={<Home searchQuery={searchQuery}  />}/>
           <Route path='/cart' element={<Cart />}/>
@@ -42,9 +47,11 @@ const App = () => {
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/restaurant/:id" element={<Restaurant />} />
         </Routes>
       </div>
       <Footer />
+      </div>
     </>
   )
 }

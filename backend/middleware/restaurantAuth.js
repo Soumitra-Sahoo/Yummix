@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-const adminAuth = async (req, res, next) => {
+const restaurantAuth = async (req, res, next) => {
   const { token } = req.headers;
 
   if (!token) {
@@ -11,14 +11,19 @@ const adminAuth = async (req, res, next) => {
   }
 
   try {
-    const token_decode = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
 
-    if (token_decode.role !== "admin") {
+    if (decoded.role !== "restaurant") {
       return res.json({
         success: false,
-        message: "Not Authorized",
+        message: "Restaurant Access Only",
       });
     }
+
+    req.restaurantId = decoded.id;
 
     next();
   } catch (error) {
@@ -31,4 +36,4 @@ const adminAuth = async (req, res, next) => {
   }
 };
 
-export default adminAuth;
+export default restaurantAuth;
