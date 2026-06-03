@@ -12,8 +12,11 @@ const List = () => {
 
   const fetchList = async () => {
     try {
-      const response = await axios.get(`${url}/api/food/list`);
-
+      const response = await axios.get(`${url}/api/food/restaurant-foods`, {
+        headers: {
+          token: localStorage.getItem("restaurantToken"),
+        },
+      });
       if (response.data.success) {
         setList(response.data.data);
       } else {
@@ -33,7 +36,7 @@ const List = () => {
         },
         {
           headers: {
-            token: localStorage.getItem("adminToken"),
+            token: localStorage.getItem("restaurantToken"),
           },
         },
       );
@@ -96,7 +99,11 @@ const List = () => {
               <div>
                 <h4>{item.name}</h4>
 
-                <p>Delicious food item</p>
+                <p>
+                  {item.description.length > 15
+                    ? item.description.substring(0, 15) + "..."
+                    : item.description}
+                </p>
               </div>
             </div>
 
@@ -106,7 +113,7 @@ const List = () => {
             </div>
 
             {/* PRICE */}
-            <h3 className="price">₹{item.price}</h3>
+            <h3 className="price">₹{item.price.toFixed(2)}</h3>
 
             {/* DELETE */}
             <div className="action-buttons">

@@ -14,7 +14,6 @@ import {
 } from "recharts";
 
 const Dashboard = () => {
-
   const [dashboardData, setDashboardData] = useState({
     totalRevenue: 0,
     totalOrders: 0,
@@ -25,23 +24,22 @@ const Dashboard = () => {
   });
 
   const fetchDashboardData = async () => {
-
     try {
-
       const response = await axios.get(
-        `${url}/api/admin/dashboard`
+        `${url}/api/admin/restaurant-dashboard`,
+        {
+          headers: {
+            token: localStorage.getItem("restaurantToken"),
+          },
+        },
       );
-
       console.log(response.data);
 
       if (response.data.success) {
         setDashboardData(response.data.data);
       }
-
     } catch (error) {
-
       console.log(error);
-
     }
   };
 
@@ -50,16 +48,13 @@ const Dashboard = () => {
   }, []);
 
   return (
-
     <div className="dashboard">
-
       <h2>Dashboard Analytics</h2>
 
       <div className="dashboard-cards">
-
         <div className="card">
           <h3>Total Revenue</h3>
-          <p>₹{dashboardData.totalRevenue}</p>
+          <p>₹{dashboardData.totalRevenue.toFixed(2)}</p>
         </div>
 
         <div className="card">
@@ -76,87 +71,49 @@ const Dashboard = () => {
           <h3>Total Users</h3>
           <p>{dashboardData.totalUsers}</p>
         </div>
-
       </div>
 
-
       <div className="dashboard-bottom">
-
-
         <div className="recent-orders">
-
           <div className="section-header">
             <h3>Recent Orders</h3>
           </div>
 
-          {
-            dashboardData.recentOrders?.map((order,index)=>(
+          {dashboardData.recentOrders?.map((order, index) => (
+            <div key={index} className="order-card">
+              <div>
+                <h4>{order.items?.map((item) => item.name).join(", ")}</h4>
 
-              <div key={index} className="order-card">
-
-                <div>
-
-                  <h4>
-                    {
-                      order.items
-                        ?.map((item)=>item.name)
-                        .join(", ")
-                    }
-                  </h4>
-
-                  <p>
-                    {order.address?.firstName} {" "}
-                    {order.address?.lastName}
-                  </p>
-
-                </div>
-
-                <span>₹{order.amount}</span>
-
+                <p>
+                  {order.address?.firstName} {order.address?.lastName}
+                </p>
               </div>
 
-            ))
-          }
-
+              <span>₹{order.amount.toFixed(2)}</span>
+            </div>
+          ))}
         </div>
 
-
-
         <div className="graph-section">
-
           <h3>Monthly Revenue</h3>
 
           <ResponsiveContainer width="100%" height={300}>
-
-            <LineChart
-              data={dashboardData.monthlyRevenue || []}
-            >
-
+            <LineChart data={dashboardData.monthlyRevenue || []}>
               <CartesianGrid strokeDasharray="3 3" />
-
               <XAxis dataKey="month" />
-
               <YAxis />
-
               <Tooltip />
-
               <Line
                 type="monotone"
                 dataKey="revenue"
                 stroke="#facc15"
                 strokeWidth={3}
               />
-
             </LineChart>
-
           </ResponsiveContainer>
-
         </div>
-
       </div>
-
     </div>
-
   );
 };
 

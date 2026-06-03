@@ -24,7 +24,7 @@ const Add = () => {
     formData.append("image", image);
     const response = await axios.post(`${url}/api/food/add`, formData, {
       headers: {
-        token: localStorage.getItem("adminToken"),
+        token: localStorage.getItem("restaurantToken"),
       },
     });
     if (response.data.success) {
@@ -47,182 +47,126 @@ const Add = () => {
     setData((data) => ({ ...data, [name]: value }));
   };
 
- return (
+  return (
+    <div className="add-page">
+      {/* PAGE HEADER */}
+      <div className="add-page-header">
+        <br />
+        <h2>Add New Food</h2>
+        <p>Create and publish food items for customers</p>
+      </div>
 
-  <div className="add-page">
+      {/* MAIN CONTAINER */}
+      <div className="add-container">
+        {/* LEFT FORM */}
+        <div className="add">
+          <form className="flex-col" onSubmit={onSubmitHandler}>
+            <div className="add-img-upload flex-col">
+              <p>Upload image</p>
 
-    {/* PAGE HEADER */}
-    <div className="add-page-header">
-        <br/>
-      <h2>Add New Food</h2>
-      <p>
-        Create and publish food items for customers
-      </p>
-
-    </div>
-
-    {/* MAIN CONTAINER */}
-    <div className='add-container'>
-
-      {/* LEFT FORM */}
-      <div className='add'>
-
-        <form className='flex-col' onSubmit={onSubmitHandler}>
-
-          <div className='add-img-upload flex-col'>
-
-            <p>Upload image</p>
-
-            <label htmlFor="image">
-
-              <img
-                src={
-                  !image
-                    ? assets.upload_area
-                    : URL.createObjectURL(image)
-                }
-                alt=""
-              />
-
-            </label>
-
-            <input
-              onChange={(e) => {
-                setImage(e.target.files[0])
-              }}
-              type="file"
-              id="image"
-              hidden
-              required
-            />
-
-          </div>
-
-          <div className='add-product-name flex-col'>
-
-            <p>Product name</p>
-
-            <input
-              name='name'
-              onChange={onChangeHandler}
-              value={data.name}
-              type="text"
-              placeholder='Menu name'
-              required
-            />
-
-          </div>
-
-          <div className='add-product-description flex-col'>
-
-            <p>Product Details</p>
-
-            <textarea
-              name='description'
-              onChange={onChangeHandler}
-              value={data.description}
-              rows={4}
-              placeholder='Enter Product description...'
-              required
-            />
-
-          </div>
-
-          <div className='add-category-price'>
-
-            <div className='add-category flex-col'>
-
-              <p>Product category</p>
-
-              <select
-                name='category'
-                onChange={onChangeHandler}
-              >
-
-                <option value="Biriyani">Biriyani</option>
-                <option value="Rolls">Rolls</option>
-                <option value="Deserts">Deserts</option>
-                <option value="Sandwich">Sandwich</option>
-                <option value="Cake">Cake</option>
-                <option value="Pure Veg">Pure Veg</option>
-                <option value="Pasta">Pasta</option>
-                <option value="Noodles">Noodles</option>
-
-              </select>
-
-            </div>
-
-            <div className='add-price flex-col'>
-
-              <p>Product Price</p>
+              <label htmlFor="image">
+                <img
+                  src={!image ? assets.upload_area : URL.createObjectURL(image)}
+                  alt=""
+                />
+              </label>
 
               <input
-                type="number"
-                name='price'
-                onChange={onChangeHandler}
-                value={data.price}
-                placeholder='₹99'
+                onChange={(e) => {
+                  setImage(e.target.files[0]);
+                }}
+                type="file"
+                id="image"
+                hidden
+                required
               />
-
             </div>
 
-          </div>
+            <div className="add-product-name flex-col">
+              <p>Product name</p>
 
-          <button
-            type='submit'
-            className='add-btn'
-          >
-            Save Food Item
-          </button>
+              <input
+                name="name"
+                onChange={onChangeHandler}
+                value={data.name}
+                type="text"
+                placeholder="Menu name"
+                required
+              />
+            </div>
 
-        </form>
+            <div className="add-product-description flex-col">
+              <p>Product Details</p>
 
-      </div>
+              <textarea
+                name="description"
+                onChange={onChangeHandler}
+                value={data.description}
+                rows={4}
+                placeholder="Enter Product description..."
+                required
+              />
+            </div>
 
-      {/* RIGHT PREVIEW */}
-      <div className='preview-section'>
+            <div className="add-category-price">
+              <div className="add-category flex-col">
+                <p>Product category</p>
 
-        <h2>Live Preview</h2>
+                <select name="category" onChange={onChangeHandler}>
+                  <option value="Biriyani">Biriyani</option>
+                  <option value="Rolls">Rolls</option>
+                  <option value="Deserts">Deserts</option>
+                  <option value="Sandwich">Sandwich</option>
+                  <option value="Cake">Cake</option>
+                  <option value="Pure Veg">Pure Veg</option>
+                  <option value="Pasta">Pasta</option>
+                  <option value="Noodles">Noodles</option>
+                </select>
+              </div>
 
-        <div className='food-preview-card'>
+              <div className="add-price flex-col">
+                <p>Product Price</p>
 
-          <img
-            src={
-              image
-                ? URL.createObjectURL(image)
-                : assets.upload_area
-            }
-            alt=""
-          />
+                <input
+                  type="number"
+                  name="price"
+                  onChange={onChangeHandler}
+                  value={data.price}
+                  placeholder="₹99"
+                />
+              </div>
+            </div>
 
-          <h3>
-            {data.name || "Food Name"}
-          </h3>
-
-          <p className='preview-price'>
-            ₹ {data.price || "99"}
-          </p>
-
-          <p className='preview-description'>
-            {
-              data.description ||
-              "Spicy & tasty food description"
-            }
-          </p>
-
-          <span className='preview-category'>
-            {data.category}
-          </span>
-
+            <button type="submit" className="add-btn">
+              Save Food Item
+            </button>
+          </form>
         </div>
 
+        {/* RIGHT PREVIEW */}
+        <div className="preview-section">
+          <h2>Live Preview</h2>
+
+          <div className="food-preview-card">
+            <img
+              src={image ? URL.createObjectURL(image) : assets.upload_area}
+              alt=""
+            />
+
+            <h3>{data.name || "Food Name"}</h3>
+
+            <p className="preview-price">₹ {data.price || "99"}</p>
+
+            <p className="preview-description">
+              {data.description || "Spicy & tasty food description"}
+            </p>
+
+            <span className="preview-category">{data.category}</span>
+          </div>
+        </div>
       </div>
-
     </div>
-
-  </div>
-
-);
+  );
 };
 
 export default Add;
