@@ -49,21 +49,16 @@ const Add = () => {
 
   return (
     <div className="add-page">
-      {/* PAGE HEADER */}
       <div className="add-page-header">
         <br />
         <h2>Add New Food</h2>
         <p>Create and publish food items for customers</p>
       </div>
-
-      {/* MAIN CONTAINER */}
       <div className="add-container">
-        {/* LEFT FORM */}
         <div className="add">
           <form className="flex-col" onSubmit={onSubmitHandler}>
             <div className="add-img-upload flex-col">
               <p>Upload image</p>
-
               <label htmlFor="image">
                 <img
                   src={!image ? assets.upload_area : URL.createObjectURL(image)}
@@ -143,16 +138,13 @@ const Add = () => {
           </form>
         </div>
 
-        {/* RIGHT PREVIEW */}
         <div className="preview-section">
           <h2>Live Preview</h2>
-
           <div className="food-preview-card">
             <img
               src={image ? URL.createObjectURL(image) : assets.upload_area}
               alt=""
             />
-
             <h3>{data.name || "Food Name"}</h3>
 
             <p className="preview-price">₹ {data.price || "99"}</p>

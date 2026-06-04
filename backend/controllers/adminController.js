@@ -67,13 +67,10 @@ const getDashboardData = async (req, res) => {
     const foods = await foodModel.find({});
     const users = await userModel.find({});
 
-    // TOTAL REVENUE
     const totalRevenue = orders.reduce((acc, order) => acc + order.amount, 0);
 
-    // RECENT ORDERS
     const recentOrders = orders.slice().reverse().slice(0, 5);
 
-    // MONTHLY REVENUE
     const monthlyData = {};
 
     orders.forEach((order) => {

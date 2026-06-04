@@ -84,19 +84,15 @@ const Order = () => {
                   )}
                 </h3>
 
-                {/* CUSTOMER INFO */}
                 <div className="customer-info">
                   <h4>
                     {order.address.firstName} {order.address.lastName}
                   </h4>
-
                   <p>{order.address.street}</p>
-
                   <p>
                     {order.address.city}, {order.address.state},{" "}
                     {order.address.country}
                   </p>
-
                   <p>📞 {order.address.phone}</p>
                 </div>
               </div>
@@ -104,21 +100,14 @@ const Order = () => {
 
             {/* RIGHT SIDE */}
             <div className="order-right">
-              {/* ITEMS */}
               <div className="order-stat">
                 <span>Items</span>
-
                 <h3>{order.items.length}</h3>
               </div>
-
-              {/* PRICE */}
               <div className="order-stat">
                 <span>Total</span>
-
                 <h3>₹{order.amount}</h3>
               </div>
-
-              {/* STATUS */}
               <div
                 className={`status-badge ${
                   order.status === "Food Processing"
@@ -135,9 +124,7 @@ const Order = () => {
                   value={order.status}
                 >
                   <option value="Food Processing">Processing</option>
-
                   <option value="Out for delivery">Out for delivery</option>
-
                   <option value="Delivered">Delivered</option>
                 </select>
               </div>

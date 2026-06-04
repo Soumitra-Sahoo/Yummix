@@ -107,15 +107,10 @@ const List = () => {
               </div>
             </div>
 
-            {/* CATEGORY */}
             <div>
               <span className="category-badge">{item.category}</span>
             </div>
-
-            {/* PRICE */}
             <h3 className="price">₹{item.price.toFixed(2)}</h3>
-
-            {/* DELETE */}
             <div className="action-buttons">
               <button
                 className="edit-btn"
@@ -123,7 +118,6 @@ const List = () => {
               >
                 Edit
               </button>
-
               <button
                 className="delete-btn"
                 onClick={() => {

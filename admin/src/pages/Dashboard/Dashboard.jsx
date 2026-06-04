@@ -96,7 +96,6 @@ const Dashboard = () => {
 
         <div className="graph-section">
           <h3>Monthly Revenue</h3>
-
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={dashboardData.monthlyRevenue || []}>
               <CartesianGrid strokeDasharray="3 3" />
