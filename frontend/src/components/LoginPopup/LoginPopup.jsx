@@ -8,7 +8,6 @@ import { toast } from "react-toastify";
 const LoginPopup = ({ setShowLogin }) => {
   const { setToken, url, loadCartData } = useContext(StoreContext);
   const [currState, setCurrState] = useState("Sign Up");
-
   const [data, setData] = useState({
     name: "",
     email: "",
@@ -23,7 +22,6 @@ const LoginPopup = ({ setShowLogin }) => {
 
   const onLogin = async (e) => {
     e.preventDefault();
-
     let new_url = url;
     if (currState === "Login") {
       new_url += "/api/user/login";
