@@ -16,19 +16,16 @@ const StoreContextProvider = (props) => {
   const [couponCode, setCouponCode] = useState("");
 
   const addToCart = async (itemId) => {
+    const addedFood = food_list.find((food) => food._id === itemId);
+
+    setCartItems((prev) => ({
+      ...prev,
+      [itemId]: (prev[itemId] || 0) + 1,
+    }));
+    setQuickItem(addedFood);
+
     try {
       if (!token) {
-        if (!cartItems[itemId]) {
-          setCartItems((prev) => ({ ...prev, [itemId]: 1 }));
-        } else {
-          setCartItems((prev) => ({
-            ...prev,
-            [itemId]: prev[itemId] + 1,
-          }));
-        }
-        const addedFood = food_list.find((food) => food._id === itemId);
-
-        setQuickItem(addedFood);
         setShowQuickCheckout(true);
         return;
       }
@@ -48,32 +45,27 @@ const StoreContextProvider = (props) => {
           setCartItems({
             [itemId]: 1,
           });
-        } else {
-          if (!cartItems[itemId]) {
-            setCartItems((prev) => ({
-              ...prev,
-              [itemId]: 1,
-            }));
-          } else {
-            setCartItems((prev) => ({
-              ...prev,
-              [itemId]: prev[itemId] + 1,
-            }));
-          }
         }
-
-        const addedFood = food_list.find((food) => food._id === itemId);
-
-        setQuickItem(addedFood);
 
         setShowQuickCheckout(false);
 
         setTimeout(() => {
           setShowQuickCheckout(true);
         }, 10);
+      } else {
+        setCartItems((prev) => ({
+          ...prev,
+          [itemId]: Math.max((prev[itemId] || 1) - 1, 0),
+        }));
+        toast.error(response.data.message || "Could not add item to cart");
       }
     } catch (error) {
       console.log(error);
+      setCartItems((prev) => ({
+        ...prev,
+        [itemId]: Math.max((prev[itemId] || 1) - 1, 0),
+      }));
+      toast.error("Could not add item to cart");
     }
   };
 

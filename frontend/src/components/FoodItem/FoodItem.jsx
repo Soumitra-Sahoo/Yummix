@@ -1,11 +1,10 @@
-import React, { useContext, useState } from "react";
+import { useContext } from "react";
 import "./FoodItem.css";
 import { assets } from "../../assets/assets";
 import { StoreContext } from "../../Context/StoreContext";
 import placeholder from "../../assets/placeholder.webp"; // fallback image
 
 const FoodItem = ({ image, name, price, desc, id, restaurantName }) => {
-  const [itemCount, setItemCount] = useState(0);
   const { cartItems, addToCart, removeFromCart } = useContext(StoreContext);
 
   // Use full Cloudinary URL or fallback placeholder
