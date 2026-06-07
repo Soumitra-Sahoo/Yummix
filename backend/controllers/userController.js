@@ -5,7 +5,7 @@ import userModel from "../models/userModel.js";
 
 //create token
 const createToken = (id) => {
-    return jwt.sign({id}, process.env.JWT_SECRET);
+    return jwt.sign({id}, process.env.JWT_SECRET, { expiresIn: "7d" });
 }
 
 //login user
