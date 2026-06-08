@@ -1,8 +1,9 @@
 import { createContext, useEffect, useState } from "react";
 import { menu_list } from "../assets/assets";
 import axios from "axios";
-export const StoreContext = createContext(null);
 import { toast } from "react-toastify";
+
+export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
   const url = "https://yummix-backend.vercel.app";
@@ -18,41 +19,32 @@ const StoreContextProvider = (props) => {
   const addToCart = async (itemId) => {
     const addedFood = food_list.find((food) => food._id === itemId);
 
-    setCartItems((prev) => ({
-      ...prev,
-      [itemId]: (prev[itemId] || 0) + 1,
-    }));
+    // Optimistic update
+    setCartItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
     setQuickItem(addedFood);
 
-    try {
-      if (!token) {
-        setShowQuickCheckout(true);
-        return;
-      }
+    if (!token) {
+      setShowQuickCheckout(true);
+      return;
+    }
 
+    try {
       const response = await axios.post(
-        url + "/api/cart/add",
+        `${url}/api/cart/add`,
         { itemId },
-        {
-          headers: { token },
-        },
+        { headers: { token } }
       );
 
       if (response.data.success) {
         if (response.data.cartReplaced) {
           toast.info("Previous cart cleared. New item added.");
-
-          setCartItems({
-            [itemId]: 1,
-          });
+          setCartItems({ [itemId]: 1 });
         }
-
+        // Trigger quick checkout re-render
         setShowQuickCheckout(false);
-
-        setTimeout(() => {
-          setShowQuickCheckout(true);
-        }, 10);
+        setTimeout(() => setShowQuickCheckout(true), 10);
       } else {
+        // Rollback optimistic update
         setCartItems((prev) => ({
           ...prev,
           [itemId]: Math.max((prev[itemId] || 1) - 1, 0),
@@ -60,80 +52,67 @@ const StoreContextProvider = (props) => {
         toast.error(response.data.message || "Could not add item to cart");
       }
     } catch (error) {
-      console.log(error);
       setCartItems((prev) => ({
         ...prev,
         [itemId]: Math.max((prev[itemId] || 1) - 1, 0),
       }));
-      toast.error("Could not add item to cart");
+      toast.error(
+        error.response?.data?.message || error.message || "Could not add item to cart"
+      );
     }
   };
 
   const removeFromCart = async (itemId) => {
     setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
     if (token) {
-      await axios.post(
-        url + "/api/cart/remove",
-        { itemId },
-        { headers: { token } },
-      );
+      await axios.post(`${url}/api/cart/remove`, { itemId }, { headers: { token } });
     }
   };
 
   const getTotalCartAmount = () => {
-    let totalAmount = 0;
-    for (const item in cartItems) {
-      if (cartItems[item] > 0) {
-        let itemInfo = food_list.find((product) => product._id === item);
-        if (itemInfo) {
-          totalAmount += itemInfo.price * cartItems[item];
-        }
+    let total = 0;
+    for (const id in cartItems) {
+      if (cartItems[id] > 0) {
+        const item = food_list.find((p) => p._id === id);
+        if (item) total += item.price * cartItems[id];
       }
     }
-    return totalAmount;
+    return total;
   };
 
   const fetchFoodList = async () => {
-    const response = await axios.get(url + "/api/food/list");
+    const response = await axios.get(`${url}/api/food/list`);
     setFoodList(response.data.data);
   };
 
   const loadCartData = async (token) => {
     try {
-      const response = await axios.post(
-        url + "/api/cart/get",
-        {},
-        { headers: { token } },
-      );
-      if (response.data.success) {
-        setCartItems(response.data.cartData);
-      }
+      const response = await axios.post(`${url}/api/cart/get`, {}, { headers: { token } });
+      if (response.data.success) setCartItems(response.data.cartData);
     } catch (error) {
-      console.log("Error loading cart data:", error);
+      console.error("Error loading cart data:", error);
     }
   };
 
   const fetchRestaurants = async () => {
     try {
-      const response = await axios.get(url + "/api/restaurant/list");
-
-      if (response.data.success) {
-        setRestaurants(response.data.data);
-      }
+      const response = await axios.get(`${url}/api/restaurant/list`);
+      if (response.data.success) setRestaurants(response.data.data);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
   useEffect(() => {
-    async function loadData() {
+    const loadData = async () => {
       await fetchFoodList();
       await fetchRestaurants();
-      if (localStorage.getItem("token")) {
-        setToken(localStorage.getItem("token"));
-        await loadCartData(localStorage.getItem("token"));
+      const storedToken = localStorage.getItem("token");
+      if (storedToken) {
+        setToken(storedToken);
+        await loadCartData(storedToken);
       }
-    }
+    };
     loadData();
   }, []);
 

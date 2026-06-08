@@ -30,12 +30,12 @@ const adminLogin = async (req, res) => {
       });
     }
 
-    // if (!user.isAdmin) {
-    //   return res.json({
-    //     success: false,
-    //     message: "You are not Admin",
-    //   });
-    // }
+    if (!user.isAdmin) {
+      return res.json({
+        success: false,
+        message: "You are not Admin",
+      });
+    }
 
     const token = jwt.sign(
       {
