@@ -1,170 +1,216 @@
-# 🍔 Yummix — Full-Stack Food Delivery Platform
+# 🍔 Yummix — Multi-Restaurant Food Delivery Platform
 
-Yummix is a production-ready food delivery platform built using the MERN stack (MongoDB, Express.js, React.js, Node.js). The application provides a complete food ordering ecosystem for customers, administrators, and delivery management through secure authentication, real-time order tracking, online payment integration, and scalable backend architecture.
+<p align="center">
 
-Designed with modern full-stack engineering practices, Yummix focuses on responsiveness, modular architecture, secure API workflows, and seamless user experience across devices.
+![React](https://img.shields.io/badge/React-18-blue?logo=react)
+![Node.js](https://img.shields.io/badge/Node.js-20-green?logo=node.js)
+![Express.js](https://img.shields.io/badge/Express.js-Backend-black?logo=express)
+![MongoDB](https://img.shields.io/badge/MongoDB-Database-green?logo=mongodb)
+![JWT](https://img.shields.io/badge/JWT-Authentication-orange)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
----
+</p>
 
-# 🚀 Key Features
+A full-stack **multi-restaurant food delivery platform** built using the **MERN Stack**. Yummix enables customers to discover restaurants, browse menus, place orders, manage carts, and track order history while providing dedicated dashboards for restaurant owners and administrators.
 
-## Customer Application
-- Secure JWT-based authentication and authorization
-- Browse restaurants and dynamic food categories
-- Advanced food search and filtering
-- Real-time order tracking and status updates
-- Secure online payment integration
-- Responsive UI optimized for desktop and mobile devices
-- Delivery address and order management
-
----
-
-## Admin Dashboard
-- Restaurant, menu, and category management
-- Food item CRUD operations
-- Order lifecycle management
-- Real-time order monitoring
-- User and delivery personnel management
-- Operational analytics and activity tracking
+Designed with modern full-stack engineering practices, Yummix focuses on scalability, maintainability, responsive design, and secure API architecture.
 
 ---
 
-## Backend System
-- RESTful API architecture using Express.js
-- Modular backend structure for scalability
-- MongoDB database integration
-- WebSocket-powered real-time communication
-- Secure authentication and protected API routes
-- Environment-based configuration management
+## 📚 Table of Contents
+
+* Overview
+* Features
+* Architecture
+* Technology Stack
+* Project Structure
+* Installation
+* Environment Variables
+* Local Development
+* Docker Setup
+* API Endpoints
+* Security Features
+* Future Improvements
+* Contributing
+* License
+* Author
 
 ---
 
-# 🏗️ Project Architecture
+## 🚀 Overview
 
-Yummix follows a modular full-stack architecture designed for maintainability, scalability, and production-level development workflows.
+Yummix is a complete food delivery ecosystem consisting of:
 
-## Frontend (`client/`)
-- Component-driven React architecture
-- Reusable UI components
-- Responsive design system
-- API integration layer
-- Optimized state management
+* Customer Application
+* Restaurant Dashboard
+* Admin Panel
+* REST API Backend
 
-```bash
-client/
-├── public/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── utils/
+The platform supports multi-restaurant ordering workflows, menu management, secure authentication, image uploads, and order lifecycle management.
+
+---
+
+## ✨ Features
+
+### 👤 Customer Features
+
+* User Registration & Login
+* JWT Authentication
+* Browse Restaurants
+* Restaurant-Specific Menus
+* Food Search
+* Category Filtering
+* Add to Cart
+* Update Cart Quantity
+* Remove Items from Cart
+* Quick Checkout
+* Coupon Support
+* Place Orders
+* Order History
+* Responsive Design
+
+---
+
+### 🏪 Restaurant Features
+
+* Restaurant Registration
+* Restaurant Authentication
+* Restaurant Approval Workflow
+* Food Inventory Management
+* Food CRUD Operations
+* Menu Management
+* Image Upload Support
+* Restaurant Order Management
+* Dashboard Analytics
+
+---
+
+### 👨‍💼 Admin Features
+
+* Admin Authentication
+* Dashboard Analytics
+* Restaurant Approval System
+* Restaurant Monitoring
+* Food Monitoring
+* Order Management
+* Revenue Overview
+
+---
+
+### ⚙️ Backend Features
+
+* RESTful API Architecture
+* JWT Security
+* Authentication Middleware
+* MongoDB Integration
+* Cloudinary Image Storage
+* Multer File Uploads
+* Error Handling
+* Environment-Based Configuration
+
+---
+
+## 🏗 Architecture
+
+```text
+Frontend (React + Vite)
+          │
+          ▼
+   Express.js API
+          │
+          ▼
+MongoDB Atlas Database
+
+          │
+          ├── JWT Authentication
+          ├── Cloudinary Storage
+          └── Stripe Payment Integration
 ```
 
-## Backend (`server/`)
-- RESTful Express.js backend
-- Controller-route architecture
-- Middleware-based request handling
-- Secure JWT authentication
-- Real-time update workflows
+---
 
-```bash
-server/
-├── config/
-├── controllers/
-├── middleware/
-├── models/
-├── routes/
-```
+## 🛠 Technology Stack
 
-## Admin Panel (`admin/`)
-- Centralized operational dashboard
-- Restaurant and order management system
-- Real-time monitoring interface
+| Category         | Technologies                     |
+| ---------------- | -------------------------------- |
+| Frontend         | React.js, Vite, React Router DOM |
+| State Management | Context API                      |
+| HTTP Client      | Axios                            |
+| Backend          | Node.js, Express.js              |
+| Database         | MongoDB, Mongoose                |
+| Authentication   | JWT                              |
+| Security         | bcrypt.js                        |
+| File Uploads     | Multer                           |
+| Media Storage    | Cloudinary                       |
+| Payments         | Stripe                           |
+| Notifications    | React Toastify                   |
+| Deployment       | Vercel, Render, Railway          |
+| Containerization | Docker, Docker Compose           |
+| Version Control  | Git, GitHub                      |
 
-```bash
-admin/
-├── components/
-└── pages/
+---
+
+## 📁 Project Structure
+
+```text
+food-delivery/
+│
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   └── package.json
+│
+├── admin/
+│   ├── src/
+│   ├── public/
+│   └── package.json
+│
+├── backend/
+│   ├── config/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   └── package.json
+│
+├── docker-compose.yml
+├── package.json
+└── README.md
 ```
 
 ---
 
-# ⚡ System Design Highlights
+## ⚡ Installation
 
-- Modular MERN architecture
-- Real-time order tracking workflows
-- Secure authentication lifecycle
-- Scalable REST API design
-- Responsive cross-device UI
-- Payment gateway integration
-- WebSocket-based live updates
-
----
-
-# 🛠️ Tech Stack
-
-## Frontend
-- React.js
-- React Router DOM
-- Axios
-- CSS3
-- Tailwind CSS
-
-## Backend
-- Node.js
-- Express.js
-- REST API Architecture
-
-## Database
-- MongoDB
-- Mongoose
-
-## Authentication & Security
-- JWT Authentication
-- bcrypt.js Password Hashing
-- Protected API Routes
-
-## Payments
-- Stripe Payment Gateway
-
-## Cloud & Media Storage
-- Cloudinary
-- Multer
-
-## Notifications & UI
-- React Toastify
-
-## Deployment
-- Vercel (Frontend & Admin Panel)
-- Render / Vercel (Backend)
-
-## Version Control
-- Git & GitHub
-
----
-
-# 📦 Installation & Setup
-
-## Clone Repository
+### Clone Repository
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/Soumitra-Sahoo/Yummix.git
+
+cd Yummix
 ```
 
-## Install Dependencies
+---
 
-### Client
+### Install Dependencies
+
+#### Frontend
+
 ```bash
-cd client
+cd frontend
 npm install
 ```
 
-### Server
+#### Backend
+
 ```bash
-cd server
+cd backend
 npm install
 ```
 
-### Admin Panel
+#### Admin Panel
+
 ```bash
 cd admin
 npm install
@@ -172,56 +218,215 @@ npm install
 
 ---
 
-# 🔐 Environment Variables
+## 🔐 Environment Variables
 
-Create a `.env` file and configure:
+Create a `.env` file inside the backend directory.
 
 ```env
-MONGODB_URI=
-JWT_SECRET=
-STRIPE_SECRET_KEY=
-PAYPAL_CLIENT_ID=
+PORT=4000
+
+MONGODB_URI=your_mongodb_connection_string
+
+JWT_SECRET=your_secret_key
+
+STRIPE_SECRET_KEY=your_stripe_secret_key
+
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+
+CLOUDINARY_API_KEY=your_api_key
+
+CLOUDINARY_API_SECRET=your_api_secret
 ```
 
 ---
 
-# ▶️ Run Application
+## 💻 Local Development
 
-## Start Frontend
-```bash
-npm run dev
-```
+### Start Backend
 
-## Start Backend
 ```bash
+cd backend
 npm start
 ```
 
-## Start Admin Panel
-```bash
-npm run dev
+Runs on:
+
+```text
+http://localhost:4000
 ```
 
 ---
 
-# 📌 Future Improvements
+### Start Frontend
 
-- Redis caching layer
-- Dockerized deployment
-- Kubernetes support
-- Push notification system
-- AI-powered food recommendations
-- Advanced analytics dashboard
-- Microservices migration
+```bash
+cd frontend
+npm run dev
+```
 
----
+Runs on:
 
-# 🤝 Contribution
-
-Contributions are welcome. Feel free to fork the repository, create a feature branch, and submit a pull request following standard development practices.
+```text
+http://localhost:5173
+```
 
 ---
 
-# 📄 License
+### Start Admin Panel
+
+```bash
+cd admin
+npm run dev
+```
+
+Runs on:
+
+```text
+http://localhost:5174
+```
+
+---
+
+## 🐳 Docker Setup
+
+### Build Containers
+
+```bash
+docker compose build
+```
+
+### Start Containers
+
+```bash
+docker compose up -d
+```
+
+### Stop Containers
+
+```bash
+docker compose down
+```
+
+### View Running Containers
+
+```bash
+docker ps
+```
+
+---
+
+## 📡 API Endpoints
+
+### Authentication
+
+| Method | Endpoint             | Description   |
+| ------ | -------------------- | ------------- |
+| POST   | `/api/user/register` | Register User |
+| POST   | `/api/user/login`    | Login User    |
+| POST   | `/api/admin/login`   | Admin Login   |
+
+---
+
+### Restaurants
+
+| Method | Endpoint                   | Description         |
+| ------ | -------------------------- | ------------------- |
+| GET    | `/api/restaurant/list`     | Get Restaurants     |
+| POST   | `/api/restaurant/register` | Register Restaurant |
+| POST   | `/api/restaurant/login`    | Restaurant Login    |
+
+---
+
+### Foods
+
+| Method | Endpoint                   | Description     |
+| ------ | -------------------------- | --------------- |
+| GET    | `/api/food/list`           | Get All Foods   |
+| POST   | `/api/food/add`            | Add Food        |
+| POST   | `/api/food/remove`         | Remove Food     |
+| GET    | `/api/food/restaurant/:id` | Restaurant Menu |
+
+---
+
+### Orders
+
+| Method | Endpoint                | Description         |
+| ------ | ----------------------- | ------------------- |
+| POST   | `/api/order/place`      | Place Order         |
+| POST   | `/api/order/userorders` | User Orders         |
+| POST   | `/api/order/status`     | Update Order Status |
+| POST   | `/api/order/verify`     | Verify Payment      |
+
+---
+
+## 🔒 Security Features
+
+* JWT Authentication
+* Password Hashing with bcrypt
+* Protected API Routes
+* Secure Environment Variables
+* Input Validation
+* Secure Database Access
+* Authentication Middleware
+
+---
+
+## 📈 Future Improvements
+
+* Redis Caching
+* Push Notifications
+* AI-Powered Food Recommendations
+* Progressive Web App (PWA)
+* Advanced Restaurant Analytics
+* Live Delivery Tracking
+* Multi-Language Support
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome.
+
+```bash
+# Create a feature branch
+git checkout -b feature/my-feature
+
+# Commit changes
+git commit -m "Add new feature"
+
+# Push branch
+git push origin feature/my-feature
+```
+
+Then create a Pull Request describing your changes.
+
+---
+
+## 📄 License
 
 This project is licensed under the MIT License.
+
+---
+
+## 👨‍💻 Author
+
+### Soumitra Sahoo
+
+* GitHub: https://github.com/Soumitra-Sahoo
+* Project: Yummix Food Delivery Platform
+
+---
+
+## ⭐ Support
+
+If you found this project helpful:
+
+* ⭐ Star the repository
+* 🍴 Fork the project
+* 🚀 Build something awesome with it
+
+---
+
+<p align="center">
+Built with ❤️ using the MERN Stack
+</p>
