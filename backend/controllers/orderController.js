@@ -50,7 +50,6 @@ const placeOrder = async (req, res) => {
       price_data: {
         currency,
         product_data: { name: item.name },
-        // Apply proportional discount to each item
         unit_amount: Math.round(item.price * (1 - discount / subtotal) * 100),
       },
       quantity: item.quantity,
