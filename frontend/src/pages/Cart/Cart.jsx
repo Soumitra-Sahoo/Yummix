@@ -3,12 +3,13 @@ import "./Cart.css";
 import { StoreContext } from "../../Context/StoreContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import axios from "axios";
 
 const Cart = () => {
   const {
     cartItems, food_list, removeFromCart,
     getTotalCartAmount, discount, setDiscount,
-    couponCode, setCouponCode,
+    couponCode, setCouponCode, token, url
   } = useContext(StoreContext);
 
   const navigate  = useNavigate();
@@ -20,15 +21,27 @@ const Cart = () => {
     }
   }, [subtotal, couponCode, setDiscount]);
 
-  const applyCoupon = () => {
-    if (couponCode.trim().toUpperCase() === "FIRST15") {
-      if (discount > 0) return toast.info("Coupon already applied");
+  const applyCoupon = async () => {
+  try {
+    const response = await axios.post(
+      `${url}/api/order/validate-coupon`,
+      { couponCode },
+      {
+        headers: { token },
+      }
+    );
+
+    if (response.data.success) {
       setDiscount(subtotal * 0.15);
       toast.success("15% discount applied");
     } else {
-      toast.error("Invalid coupon");
+      setDiscount(0);
+      toast.error(response.data.message);
     }
-  };
+  } catch (error) {
+    toast.error("Failed to validate coupon");
+  }
+};
 
   const discountedTotal = subtotal === 0 ? 0 : (subtotal - discount + 17).toFixed(2);
 

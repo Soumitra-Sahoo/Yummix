@@ -27,9 +27,11 @@ const placeOrder = async (req, res) => {
       return res.json({ success: false, message: "User not found" });
     }
 
-    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const subtotal = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
 
-    
     if (subtotal <= 0) {
       return res.json({ success: false, message: "Invalid cart total" });
     }
@@ -54,7 +56,10 @@ const placeOrder = async (req, res) => {
     });
 
     await newOrder.save();
-    await userModel.findByIdAndUpdate(userId, { cartData: {}, cartRestaurantId: null });
+    await userModel.findByIdAndUpdate(userId, {
+      cartData: {},
+      cartRestaurantId: null,
+    });
 
     // Build Stripe line items using the CURRENCY constant
     const discountRatio = discount > 0 ? discount / subtotal : 0;
@@ -78,7 +83,7 @@ const placeOrder = async (req, res) => {
 
     const session = await stripe.checkout.sessions.create({
       success_url: `${FRONTEND_URL}/verify?success=true&orderId=${newOrder._id}`,
-      cancel_url:  `${FRONTEND_URL}/verify?success=false&orderId=${newOrder._id}`,
+      cancel_url: `${FRONTEND_URL}/verify?success=false&orderId=${newOrder._id}`,
       line_items,
       mode: "payment",
     });
@@ -89,7 +94,44 @@ const placeOrder = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+const validateCoupon = async (req, res) => {
+  try {
+    const { couponCode } = req.body;
+    const user = await userModel.findById(req.body.userId);
 
+    if (!user) {
+      return res.json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (couponCode?.toUpperCase() === "FIRST15") {
+      if (user.hasUsedFirstCoupon) {
+        return res.json({
+          success: false,
+          message: "FIRST15 already used",
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: "Coupon valid",
+      });
+    }
+
+    return res.json({
+      success: false,
+      message: "Invalid coupon",
+    });
+  } catch (error) {
+    console.error(error);
+    res.json({
+      success: false,
+      message: "Error validating coupon",
+    });
+  }
+};
 const listOrders = async (req, res) => {
   try {
     const orders = await orderModel.find({});
@@ -131,7 +173,9 @@ const verifyOrder = async (req, res) => {
       await orderModel.findByIdAndUpdate(orderId, { payment: true });
       const order = await orderModel.findById(orderId);
       if (order?.couponCode === "FIRST15") {
-        await userModel.findByIdAndUpdate(order.userId, { hasUsedFirstCoupon: true });
+        await userModel.findByIdAndUpdate(order.userId, {
+          hasUsedFirstCoupon: true,
+        });
       }
       res.json({ success: true, message: "Paid" });
     } else {
@@ -174,7 +218,12 @@ const updateRestaurantOrderStatus = async (req, res) => {
 };
 
 export {
-  placeOrder, listOrders, userOrders,
-  updateStatus, verifyOrder,
-  restaurantOrders, updateRestaurantOrderStatus,
+  placeOrder,
+  validateCoupon,
+  listOrders,
+  userOrders,
+  updateStatus,
+  verifyOrder,
+  restaurantOrders,
+  updateRestaurantOrderStatus,
 };
