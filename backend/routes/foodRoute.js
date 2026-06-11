@@ -1,5 +1,4 @@
 import express from "express";
-import adminAuth from "../middleware/adminAuth.js";
 import {
   addFood,
   listFood,
@@ -13,7 +12,6 @@ import restaurantAuth from "../middleware/restaurantAuth.js";
 
 const foodRouter = express.Router();
 
-foodRouter.get("/list", listFood);
 const uploadMiddleware = (req, res, next) => {
   upload.single("image")(req, res, (err) => {
     if (err) {
@@ -24,6 +22,7 @@ const uploadMiddleware = (req, res, next) => {
   });
 };
 
+foodRouter.get("/list", listFood);
 foodRouter.post("/add", restaurantAuth, uploadMiddleware, addFood);
 foodRouter.post("/remove", restaurantAuth, removeFood);
 foodRouter.get("/restaurant-foods", restaurantAuth, restaurantFoods);

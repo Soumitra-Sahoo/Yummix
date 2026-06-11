@@ -6,25 +6,19 @@ import { toast } from "react-toastify";
 
 const Cart = () => {
   const {
-    cartItems,
-    food_list,
-    removeFromCart,
-    getTotalCartAmount,
-    discount,
-    setDiscount,
-    couponCode,
-    setCouponCode,
+    cartItems, food_list, removeFromCart,
+    getTotalCartAmount, discount, setDiscount,
+    couponCode, setCouponCode,
   } = useContext(StoreContext);
 
-  const navigate = useNavigate();
-  const subtotal = getTotalCartAmount();
+  const navigate  = useNavigate();
+  const subtotal  = getTotalCartAmount();
 
-  // Fix: Recalculate discount whenever cart total changes
   useEffect(() => {
     if (couponCode.trim().toUpperCase() === "FIRST15" && discount > 0) {
       setDiscount(subtotal * 0.15);
     }
-  }, [subtotal]);
+  }, [subtotal, couponCode, setDiscount]);
 
   const applyCoupon = () => {
     if (couponCode.trim().toUpperCase() === "FIRST15") {
@@ -42,12 +36,8 @@ const Cart = () => {
     <div className="cart">
       <div className="cart-items">
         <div className="cart-items-title">
-          <p>Items</p>
-          <p>Title</p>
-          <p>Price</p>
-          <p>Quantity</p>
-          <p>Total</p>
-          <p>Remove</p>
+          <p>Items</p><p>Title</p><p>Price</p>
+          <p>Quantity</p><p>Total</p><p>Remove</p>
         </div>
         <br />
         <hr />
@@ -73,15 +63,9 @@ const Cart = () => {
         <div className="cart-total">
           <h2>Cart Totals</h2>
           <div>
-            <div className="cart-total-details">
-              <p>Subtotal</p>
-              <p>₹{subtotal}</p>
-            </div>
+            <div className="cart-total-details"><p>Subtotal</p><p>₹{subtotal}</p></div>
             <br />
-            <div className="cart-total-details">
-              <p>Delivery Fee</p>
-              <p>₹{subtotal === 0 ? 0 : 17}</p>
-            </div>
+            <div className="cart-total-details"><p>Delivery Fee</p><p>₹{subtotal === 0 ? 0 : 17}</p></div>
             {discount > 0 && (
               <>
                 <hr />
@@ -109,9 +93,7 @@ const Cart = () => {
               value={couponCode}
               onChange={(e) => {
                 setCouponCode(e.target.value);
-                if (e.target.value.trim().toUpperCase() !== "FIRST15") {
-                  setDiscount(0);
-                }
+                if (e.target.value.trim().toUpperCase() !== "FIRST15") setDiscount(0);
               }}
             />
             <button onClick={applyCoupon}>Apply</button>

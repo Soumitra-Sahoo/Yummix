@@ -5,16 +5,17 @@ import { toast } from "react-toastify";
 
 export const StoreContext = createContext(null);
 
-const StoreContextProvider = (props) => {
+const StoreContextProvider = ({ children }) => { 
   const url = "https://yummix-backend.vercel.app";
-  const [food_list, setFoodList] = useState([]);
-  const [cartItems, setCartItems] = useState({});
-  const [token, setToken] = useState("");
-  const [restaurants, setRestaurants] = useState([]);
+
+  const [food_list, setFoodList]               = useState([]);
+  const [cartItems, setCartItems]               = useState({});
+  const [token, setToken]                       = useState("");
+  const [restaurants, setRestaurants]           = useState([]);
   const [showQuickCheckout, setShowQuickCheckout] = useState(false);
-  const [quickItem, setQuickItem] = useState(null);
-  const [discount, setDiscount] = useState(0);
-  const [couponCode, setCouponCode] = useState("");
+  const [quickItem, setQuickItem]               = useState(null);
+  const [discount, setDiscount]                 = useState(0);
+  const [couponCode, setCouponCode]             = useState("");
 
   const addToCart = async (itemId) => {
     const addedFood = food_list.find((food) => food._id === itemId);
@@ -40,11 +41,10 @@ const StoreContextProvider = (props) => {
           toast.info("Previous cart cleared. New item added.");
           setCartItems({ [itemId]: 1 });
         }
-        // Trigger quick checkout re-render
         setShowQuickCheckout(false);
         setTimeout(() => setShowQuickCheckout(true), 10);
       } else {
-        // Rollback optimistic update
+        // Rollback on failure
         setCartItems((prev) => ({
           ...prev,
           [itemId]: Math.max((prev[itemId] || 1) - 1, 0),
@@ -81,16 +81,24 @@ const StoreContextProvider = (props) => {
   };
 
   const fetchFoodList = async () => {
-    const response = await axios.get(`${url}/api/food/list`);
-    setFoodList(response.data.data);
+    try {
+      const response = await axios.get(`${url}/api/food/list`);
+      setFoodList(response.data.data || []);
+    } catch (error) {
+      console.error("fetchFoodList error:", error);
+    }
   };
 
-  const loadCartData = async (token) => {
+   const loadCartData = async (authToken) => {
     try {
-      const response = await axios.post(`${url}/api/cart/get`, {}, { headers: { token } });
+      const response = await axios.post(
+        `${url}/api/cart/get`,
+        {},
+        { headers: { token: authToken } }
+      );
       if (response.data.success) setCartItems(response.data.cartData);
     } catch (error) {
-      console.error("Error loading cart data:", error);
+      console.error("loadCartData error:", error);
     }
   };
 
@@ -99,7 +107,7 @@ const StoreContextProvider = (props) => {
       const response = await axios.get(`${url}/api/restaurant/list`);
       if (response.data.success) setRestaurants(response.data.data);
     } catch (error) {
-      console.error(error);
+      console.error("fetchRestaurants error:", error);
     }
   };
 
@@ -141,7 +149,7 @@ const StoreContextProvider = (props) => {
 
   return (
     <StoreContext.Provider value={contextValue}>
-      {props.children}
+      {children}
     </StoreContext.Provider>
   );
 };

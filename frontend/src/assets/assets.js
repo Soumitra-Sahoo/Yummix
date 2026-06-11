@@ -11,6 +11,13 @@ import menu_5 from './menu_5.jpg'
 import menu_6 from './menu_6.jpg'
 import menu_7 from './menu_7.jpg'
 import menu_8 from './menu_8.jpg'
+import menu_pizza     from "./menu_pizza.png"
+import menu_snacks    from "./menu_snacks.png"
+import menu_beverages from "./menu_beverages.png"
+import menu_breakfast from "./menu_breakfast.png"
+import menu_chinese   from "./menu_chinese.png"
+import menu_thali     from "./menu_thali.png"
+import menu_others    from "./menu_others.png"
 
 import food_1 from './food_1.png'
 import food_2 from './food_2.png'
@@ -85,38 +92,23 @@ export const assets = {
 }
 
 export const menu_list = [
-    {
-        menu_name: "Biriyani",
-        menu_image: menu_1
-    },
-    {
-        menu_name: "Rolls",
-        menu_image: menu_2
-    },
-    {
-        menu_name: "Deserts",
-        menu_image: menu_3
-    },
-    {
-        menu_name: "Sandwich",
-        menu_image: menu_4
-    },
-    {
-        menu_name: "Cake",
-        menu_image: menu_5
-    },
-    {
-        menu_name: "Pure Veg",
-        menu_image: menu_6
-    },
-    {
-        menu_name: "Pasta",
-        menu_image: menu_7
-    },
-    {
-        menu_name: "Noodles",
-        menu_image: menu_8
-    }]
+  { menu_name: "Biriyani",  menu_image: menu_1  },
+  { menu_name: "Rolls",     menu_image: menu_2  },
+  { menu_name: "Deserts",   menu_image: menu_3  },
+  { menu_name: "Sandwich",  menu_image: menu_4  },
+  { menu_name: "Cake",      menu_image: menu_5  },
+  { menu_name: "Pure Veg",  menu_image: menu_6  },
+  { menu_name: "Pasta",     menu_image: menu_7  },
+  { menu_name: "Noodles",   menu_image: menu_8  },
+  { menu_name: "Pizza",     menu_image: menu_pizza     },
+  { menu_name: "Snacks",    menu_image: menu_snacks    },
+  { menu_name: "Beverages", menu_image: menu_beverages },
+  { menu_name: "Breakfast", menu_image: menu_breakfast },
+  { menu_name: "Chinese",   menu_image: menu_chinese   },
+  { menu_name: "Thali",     menu_image: menu_thali     },
+  { menu_name: "Others",    menu_image: menu_others    },
+];
+
 
 export const food_list = [
     {

@@ -2,79 +2,90 @@ import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import foodModel from "../models/foodModel.js";
 import Stripe from "stripe";
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-const currency = "inr";
-const deliveryCharge = 17;
-const frontend_URL = "https://yummix-frontend.vercel.app";
+const CURRENCY = "inr";
+const DELIVERY_CHARGE = 17;
+const FRONTEND_URL = "https://yummix-frontend.vercel.app";
 
 const placeOrder = async (req, res) => {
   try {
-    const firstFood = await foodModel.findById(req.body.items[0]._id);
-    const user = await userModel.findById(req.body.userId);
+    const { items, userId, address, couponCode } = req.body;
 
-    // Calculate subtotal
-    const subtotal = req.body.items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
+    if (!items || items.length === 0) {
+      return res.json({ success: false, message: "Cart is empty" });
+    }
+
+    const firstFood = await foodModel.findById(items[0]._id);
+    if (!firstFood) {
+      return res.json({ success: false, message: "Food item not found" });
+    }
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    
+    if (subtotal <= 0) {
+      return res.json({ success: false, message: "Invalid cart total" });
+    }
 
     let discount = 0;
-
-    if (req.body.couponCode?.toUpperCase() === "FIRST15") {
+    if (couponCode?.toUpperCase() === "FIRST15") {
       if (user.hasUsedFirstCoupon) {
         return res.json({ success: false, message: "FIRST15 already used" });
       }
       discount = subtotal * 0.15;
     }
 
-    const finalAmount = subtotal - discount + deliveryCharge;
+    const finalAmount = subtotal - discount + DELIVERY_CHARGE;
 
     const newOrder = new orderModel({
-      userId: req.body.userId,
+      userId,
       restaurantId: firstFood.restaurantId,
-      items: req.body.items,
+      items,
       amount: finalAmount,
-      address: req.body.address,
-      couponCode: req.body.couponCode || "",
+      address,
+      couponCode: couponCode || "",
     });
 
     await newOrder.save();
-    await userModel.findByIdAndUpdate(req.body.userId, {
-      cartData: {},
-      cartRestaurantId: null,
-    });
+    await userModel.findByIdAndUpdate(userId, { cartData: {}, cartRestaurantId: null });
 
-    // Fix: Build line_items that match the actual charged amount
-    const line_items = req.body.items.map((item) => ({
+    // Build Stripe line items using the CURRENCY constant
+    const discountRatio = discount > 0 ? discount / subtotal : 0;
+    const line_items = items.map((item) => ({
       price_data: {
-        currency,
+        currency: CURRENCY,
         product_data: { name: item.name },
-        unit_amount: Math.round(item.price * (1 - discount / subtotal) * 100),
+        unit_amount: Math.round(item.price * (1 - discountRatio) * 100),
       },
       quantity: item.quantity,
     }));
 
-    // Fix: Add delivery as a separate line item
     line_items.push({
       price_data: {
-        currency,
+        currency: CURRENCY,
         product_data: { name: "Delivery Charge" },
-        unit_amount: deliveryCharge * 100,
+        unit_amount: DELIVERY_CHARGE * 100,
       },
       quantity: 1,
     });
 
     const session = await stripe.checkout.sessions.create({
-      success_url: `${frontend_URL}/verify?success=true&orderId=${newOrder._id}`,
-      cancel_url: `${frontend_URL}/verify?success=false&orderId=${newOrder._id}`,
+      success_url: `${FRONTEND_URL}/verify?success=true&orderId=${newOrder._id}`,
+      cancel_url:  `${FRONTEND_URL}/verify?success=false&orderId=${newOrder._id}`,
       line_items,
       mode: "payment",
     });
 
     res.json({ success: true, session_url: session.url });
   } catch (error) {
-    console.error(error);
+    console.error("placeOrder error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -120,9 +131,7 @@ const verifyOrder = async (req, res) => {
       await orderModel.findByIdAndUpdate(orderId, { payment: true });
       const order = await orderModel.findById(orderId);
       if (order?.couponCode === "FIRST15") {
-        await userModel.findByIdAndUpdate(order.userId, {
-          hasUsedFirstCoupon: true,
-        });
+        await userModel.findByIdAndUpdate(order.userId, { hasUsedFirstCoupon: true });
       }
       res.json({ success: true, message: "Paid" });
     } else {
@@ -165,11 +174,7 @@ const updateRestaurantOrderStatus = async (req, res) => {
 };
 
 export {
-  placeOrder,
-  listOrders,
-  userOrders,
-  updateStatus,
-  verifyOrder,
-  restaurantOrders,
-  updateRestaurantOrderStatus,
+  placeOrder, listOrders, userOrders,
+  updateStatus, verifyOrder,
+  restaurantOrders, updateRestaurantOrderStatus,
 };
