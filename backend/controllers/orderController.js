@@ -2,57 +2,102 @@ import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import foodModel from "../models/foodModel.js";
 import Stripe from "stripe";
+import { assignRiderToOrder } from "../services/riderAssignmentService.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
 const CURRENCY = "inr";
-const DELIVERY_CHARGE = 17;
-const FRONTEND_URL = "https://yummix-frontend.vercel.app";
+const BASE_DELIVERY = 17;
+const PER_KM_RATE = 4;
+const FREE_KM = 2;
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
+const haversineKm = (lat1, lng1, lat2, lng2) => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+const calcDeliveryFee = (customerLoc, restaurantLoc) => {
+  if (!customerLoc?.lat || !restaurantLoc?.lat) return BASE_DELIVERY;
+  const dist = haversineKm(
+    customerLoc.lat,
+    customerLoc.lng,
+    restaurantLoc.lat,
+    restaurantLoc.lng,
+  );
+  const extraKm = Math.max(0, dist - FREE_KM);
+  return Math.round(BASE_DELIVERY + extraKm * PER_KM_RATE);
+};
+
+const triggerRiderAssignment = async (orderId, customerLocation) => {
+  if (customerLocation?.lat && customerLocation?.lng) {
+    await assignRiderToOrder(
+      orderId,
+      customerLocation.lat,
+      customerLocation.lng,
+    );
+  } else {
+    await orderModel.findByIdAndUpdate(orderId, {
+      isQueued: true,
+      status: "Waiting for Rider",
+    });
+  }
+};
+
+// ── STRIPE ORDER ───────────
 const placeOrder = async (req, res) => {
   try {
-    const { items, userId, address, couponCode } = req.body;
+    const { items, userId, address, couponCode, customerLocation } = req.body;
 
-    if (!items || items.length === 0) {
+    if (!items || items.length === 0)
       return res.json({ success: false, message: "Cart is empty" });
-    }
 
-    const firstFood = await foodModel.findById(items[0]._id);
-    if (!firstFood) {
+    const firstFood = await foodModel
+      .findById(items[0]._id)
+      .populate("restaurantId", "location");
+    if (!firstFood)
       return res.json({ success: false, message: "Food item not found" });
-    }
 
     const user = await userModel.findById(userId);
-    if (!user) {
-      return res.json({ success: false, message: "User not found" });
-    }
+    if (!user) return res.json({ success: false, message: "User not found" });
 
     const subtotal = items.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0,
     );
-
-    if (subtotal <= 0) {
+    if (subtotal <= 0)
       return res.json({ success: false, message: "Invalid cart total" });
-    }
+
+    const restaurantLocation = firstFood.restaurantId?.location;
+    const deliveryFee = calcDeliveryFee(customerLocation, restaurantLocation);
 
     let discount = 0;
     if (couponCode?.toUpperCase() === "FIRST15") {
-      if (user.hasUsedFirstCoupon) {
+      if (user.hasUsedFirstCoupon)
         return res.json({ success: false, message: "FIRST15 already used" });
-      }
       discount = subtotal * 0.15;
     }
 
-    const finalAmount = subtotal - discount + DELIVERY_CHARGE;
+    const finalAmount = subtotal - discount + deliveryFee;
 
     const newOrder = new orderModel({
       userId,
-      restaurantId: firstFood.restaurantId,
+      restaurantId: firstFood.restaurantId._id || firstFood.restaurantId,
       items,
       amount: finalAmount,
       address,
       couponCode: couponCode || "",
+      status: "Food Processing",
+      payment: false,
+      paymentMethod: "stripe",
+      customerLocation: customerLocation || { lat: null, lng: null },
+      deliveryFee,
     });
 
     await newOrder.save();
@@ -61,7 +106,6 @@ const placeOrder = async (req, res) => {
       cartRestaurantId: null,
     });
 
-    // Build Stripe line items using the CURRENCY constant
     const discountRatio = discount > 0 ? discount / subtotal : 0;
     const line_items = items.map((item) => ({
       price_data: {
@@ -71,12 +115,11 @@ const placeOrder = async (req, res) => {
       },
       quantity: item.quantity,
     }));
-
     line_items.push({
       price_data: {
         currency: CURRENCY,
         product_data: { name: "Delivery Charge" },
-        unit_amount: DELIVERY_CHARGE * 100,
+        unit_amount: deliveryFee * 100,
       },
       quantity: 1,
     });
@@ -90,48 +133,108 @@ const placeOrder = async (req, res) => {
 
     res.json({ success: true, session_url: session.url });
   } catch (error) {
-    console.error("placeOrder error:", error);
+    console.error("placeOrder:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
-const validateCoupon = async (req, res) => {
-  try {
-    const { couponCode } = req.body;
-    const user = await userModel.findById(req.body.userId);
 
-    if (!user) {
-      return res.json({
-        success: false,
-        message: "User not found",
-      });
+// ── COD ORDER ───────────
+const placeOrderCOD = async (req, res) => {
+  try {
+    const { items, userId, address, couponCode, customerLocation } = req.body;
+
+    if (!items || items.length === 0)
+      return res.json({ success: false, message: "Cart is empty" });
+
+    const firstFood = await foodModel
+      .findById(items[0]._id)
+      .populate("restaurantId", "location");
+    if (!firstFood)
+      return res.json({ success: false, message: "Food item not found" });
+
+    const user = await userModel.findById(userId);
+    if (!user) return res.json({ success: false, message: "User not found" });
+
+    const subtotal = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
+    if (subtotal <= 0)
+      return res.json({ success: false, message: "Invalid cart total" });
+
+    const restaurantLocation = firstFood.restaurantId?.location;
+    const deliveryFee = calcDeliveryFee(customerLocation, restaurantLocation);
+
+    let discount = 0;
+    if (couponCode?.toUpperCase() === "FIRST15") {
+      if (user.hasUsedFirstCoupon)
+        return res.json({ success: false, message: "FIRST15 already used" });
+      discount = subtotal * 0.15;
     }
 
+    const finalAmount = subtotal - discount + deliveryFee;
+
+    const newOrder = new orderModel({
+      userId,
+      restaurantId: firstFood.restaurantId._id || firstFood.restaurantId,
+      items,
+      amount: finalAmount,
+      address,
+      couponCode: couponCode || "",
+      status: "Food Processing",
+      payment: false,
+      paymentMethod: "cod",
+      customerLocation: customerLocation || { lat: null, lng: null },
+      deliveryFee,
+    });
+
+    await newOrder.save();
     if (couponCode?.toUpperCase() === "FIRST15") {
-      if (user.hasUsedFirstCoupon) {
-        return res.json({
-          success: false,
-          message: "FIRST15 already used",
+      await userModel.findByIdAndUpdate(userId, { hasUsedFirstCoupon: true });
+    }
+    await userModel.findByIdAndUpdate(userId, {
+      cartData: {},
+      cartRestaurantId: null,
+    });
+    await triggerRiderAssignment(newOrder._id, customerLocation);
+
+    res.json({
+      success: true,
+      message: "Order placed successfully! Pay on delivery.",
+      orderId: newOrder._id,
+    });
+  } catch (error) {
+    console.error("placeOrderCOD:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ── STRIPE VERIFY ──────────
+const verifyOrder = async (req, res) => {
+  const { orderId, success } = req.body;
+  try {
+    if (success === "true") {
+      await orderModel.findByIdAndUpdate(orderId, { payment: true });
+      const order = await orderModel.findById(orderId);
+
+      if (order?.couponCode === "FIRST15") {
+        await userModel.findByIdAndUpdate(order.userId, {
+          hasUsedFirstCoupon: true,
         });
       }
 
-      return res.json({
-        success: true,
-        message: "Coupon valid",
-      });
+      await triggerRiderAssignment(orderId, order?.customerLocation);
+      res.json({ success: true, message: "Paid" });
+    } else {
+      await orderModel.findByIdAndDelete(orderId);
+      res.json({ success: false, message: "Not Paid" });
     }
-
-    return res.json({
-      success: false,
-      message: "Invalid coupon",
-    });
   } catch (error) {
-    console.error(error);
-    res.json({
-      success: false,
-      message: "Error validating coupon",
-    });
+    console.error("verifyOrder:", error);
+    res.json({ success: false, message: "Not Verified" });
   }
 };
+
 const listOrders = async (req, res) => {
   try {
     const orders = await orderModel.find({});
@@ -144,7 +247,9 @@ const listOrders = async (req, res) => {
 
 const userOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find({ userId: req.body.userId });
+    const orders = await orderModel
+      .find({ userId: req.body.userId })
+      .populate("riderId", "name phone vehicleNumber profileImage");
     res.json({ success: true, data: orders });
   } catch (error) {
     console.error(error);
@@ -156,7 +261,7 @@ const updateStatus = async (req, res) => {
   try {
     const update =
       req.body.status === "Delivered"
-        ? { status: req.body.status, deliveredAt: new Date() }
+        ? { status: req.body.status, deliveredAt: new Date(), payment: true }
         : { status: req.body.status };
     await orderModel.findByIdAndUpdate(req.body.orderId, update);
     res.json({ success: true, message: "Status Updated" });
@@ -166,31 +271,11 @@ const updateStatus = async (req, res) => {
   }
 };
 
-const verifyOrder = async (req, res) => {
-  const { orderId, success } = req.body;
-  try {
-    if (success === "true") {
-      await orderModel.findByIdAndUpdate(orderId, { payment: true });
-      const order = await orderModel.findById(orderId);
-      if (order?.couponCode === "FIRST15") {
-        await userModel.findByIdAndUpdate(order.userId, {
-          hasUsedFirstCoupon: true,
-        });
-      }
-      res.json({ success: true, message: "Paid" });
-    } else {
-      await orderModel.findByIdAndDelete(orderId);
-      res.json({ success: false, message: "Not Paid" });
-    }
-  } catch (error) {
-    console.error(error);
-    res.json({ success: false, message: "Not Verified" });
-  }
-};
-
 const restaurantOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find({ restaurantId: req.restaurantId });
+    const orders = await orderModel
+      .find({ restaurantId: req.restaurantId })
+      .populate("riderId", "name phone vehicleNumber profileImage");
     res.json({ success: true, data: orders });
   } catch (error) {
     console.error(error);
@@ -205,11 +290,12 @@ const updateRestaurantOrderStatus = async (req, res) => {
       restaurantId: req.restaurantId,
     });
     if (!order) return res.json({ success: false, message: "Order not found" });
-
     order.status = req.body.status;
-    if (req.body.status === "Delivered") order.deliveredAt = new Date();
+    if (req.body.status === "Delivered") {
+      order.deliveredAt = new Date();
+      if (order.paymentMethod === "cod") order.payment = true;
+    }
     await order.save();
-
     res.json({ success: true, message: "Status Updated" });
   } catch (error) {
     console.error(error);
@@ -219,11 +305,11 @@ const updateRestaurantOrderStatus = async (req, res) => {
 
 export {
   placeOrder,
-  validateCoupon,
+  placeOrderCOD,
+  verifyOrder,
   listOrders,
   userOrders,
   updateStatus,
-  verifyOrder,
   restaurantOrders,
   updateRestaurantOrderStatus,
 };

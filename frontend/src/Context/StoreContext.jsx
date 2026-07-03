@@ -5,22 +5,65 @@ import { toast } from "react-toastify";
 
 export const StoreContext = createContext(null);
 
-const StoreContextProvider = ({ children }) => { 
-  const url = "https://yummix-backend.vercel.app";
+const haversineKm = (lat1, lng1, lat2, lng2) => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 
-  const [food_list, setFoodList]               = useState([]);
-  const [cartItems, setCartItems]               = useState({});
-  const [token, setToken]                       = useState("");
-  const [restaurants, setRestaurants]           = useState([]);
+const RADIUS_KM = 10;
+
+const StoreContextProvider = ({ children }) => {
+  const url = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+  const [food_list, setFoodList] = useState([]);
+  const [cartItems, setCartItems] = useState({});
+  const [token, setToken] = useState("");
+  const [user, setUser] = useState(null);
+  const [restaurants, setRestaurants] = useState([]);
+  const [nearbyRestaurants, setNearbyRestaurants] = useState([]);
+  const [userLocation, setUserLocation] = useState(null);
   const [showQuickCheckout, setShowQuickCheckout] = useState(false);
-  const [quickItem, setQuickItem]               = useState(null);
-  const [discount, setDiscount]                 = useState(0);
-  const [couponCode, setCouponCode]             = useState("");
+  const [quickItem, setQuickItem] = useState(null);
+  const [discount, setDiscount] = useState(0);
+  const [couponCode, setCouponCode] = useState("");
+
+  const getUserLocation = () => {
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => {
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserLocation(loc);
+        filterNearbyRestaurants(loc, restaurants);
+      },
+      () => {
+        setNearbyRestaurants(restaurants);
+      },
+    );
+  };
+
+  const filterNearbyRestaurants = (loc, allRestaurants) => {
+    if (!loc) {
+      setNearbyRestaurants(allRestaurants);
+      return;
+    }
+    const nearby = allRestaurants.filter((r) => {
+      if (!r.location?.lat || !r.location?.lng) return true;
+      return (
+        haversineKm(loc.lat, loc.lng, r.location.lat, r.location.lng) <=
+        RADIUS_KM
+      );
+    });
+    setNearbyRestaurants(nearby);
+  };
 
   const addToCart = async (itemId) => {
     const addedFood = food_list.find((food) => food._id === itemId);
-
-    // Optimistic update
     setCartItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
     setQuickItem(addedFood);
 
@@ -33,9 +76,8 @@ const StoreContextProvider = ({ children }) => {
       const response = await axios.post(
         `${url}/api/cart/add`,
         { itemId },
-        { headers: { token } }
+        { headers: { token } },
       );
-
       if (response.data.success) {
         if (response.data.cartReplaced) {
           toast.info("Previous cart cleared. New item added.");
@@ -44,7 +86,6 @@ const StoreContextProvider = ({ children }) => {
         setShowQuickCheckout(false);
         setTimeout(() => setShowQuickCheckout(true), 10);
       } else {
-        // Rollback on failure
         setCartItems((prev) => ({
           ...prev,
           [itemId]: Math.max((prev[itemId] || 1) - 1, 0),
@@ -57,7 +98,7 @@ const StoreContextProvider = ({ children }) => {
         [itemId]: Math.max((prev[itemId] || 1) - 1, 0),
       }));
       toast.error(
-        error.response?.data?.message || error.message || "Could not add item to cart"
+        error.response?.data?.message || "Could not add item to cart",
       );
     }
   };
@@ -65,7 +106,11 @@ const StoreContextProvider = ({ children }) => {
   const removeFromCart = async (itemId) => {
     setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
     if (token) {
-      await axios.post(`${url}/api/cart/remove`, { itemId }, { headers: { token } });
+      await axios.post(
+        `${url}/api/cart/remove`,
+        { itemId },
+        { headers: { token } },
+      );
     }
   };
 
@@ -85,29 +130,47 @@ const StoreContextProvider = ({ children }) => {
       const response = await axios.get(`${url}/api/food/list`);
       setFoodList(response.data.data || []);
     } catch (error) {
-      console.error("fetchFoodList error:", error);
+      console.error("fetchFoodList:", error);
     }
   };
 
-   const loadCartData = async (authToken) => {
+  const loadCartData = async (authToken) => {
     try {
       const response = await axios.post(
         `${url}/api/cart/get`,
         {},
-        { headers: { token: authToken } }
+        { headers: { token: authToken } },
       );
       if (response.data.success) setCartItems(response.data.cartData);
     } catch (error) {
-      console.error("loadCartData error:", error);
+      console.error("loadCartData:", error);
+    }
+  };
+
+  const fetchUserProfile = async (authToken) => {
+    try {
+      const response = await axios.get(`${url}/api/user/profile`, {
+        headers: {
+          token: authToken,
+        },
+      });
+      if (response.data.success) {
+        setUser(response.data.user);
+      }
+    } catch (error) {
+      console.log("Profile Error:", error);
     }
   };
 
   const fetchRestaurants = async () => {
     try {
       const response = await axios.get(`${url}/api/restaurant/list`);
-      if (response.data.success) setRestaurants(response.data.data);
+      if (response.data.success) {
+        setRestaurants(response.data.data);
+        setNearbyRestaurants(response.data.data);
+      }
     } catch (error) {
-      console.error("fetchRestaurants error:", error);
+      console.error("fetchRestaurants:", error);
     }
   };
 
@@ -119,15 +182,28 @@ const StoreContextProvider = ({ children }) => {
       if (storedToken) {
         setToken(storedToken);
         await loadCartData(storedToken);
+        await fetchUserProfile(storedToken);
       }
     };
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (restaurants.length > 0) getUserLocation();
+  }, [restaurants]);
+
+  useEffect(() => {
+    if (userLocation && restaurants.length > 0) {
+      filterNearbyRestaurants(userLocation, restaurants);
+    }
+  }, [userLocation]);
+
   const contextValue = {
     url,
     food_list,
     restaurants,
+    nearbyRestaurants,
+    userLocation,
     menu_list,
     cartItems,
     addToCart,
@@ -145,6 +221,9 @@ const StoreContextProvider = ({ children }) => {
     setDiscount,
     couponCode,
     setCouponCode,
+    user,
+    setUser,
+    fetchUserProfile,
   };
 
   return (

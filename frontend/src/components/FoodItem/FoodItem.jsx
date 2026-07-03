@@ -6,29 +6,37 @@ import placeholder from "../../assets/placeholder.webp";
 import StarRating from "../StarRating/StarRating";
 
 const SPICE_CONFIG = {
-  "Mild":      { icon: "🌿", color: "#16a34a", bg: "#dcfce7" },
-  "Medium":    { icon: "🌶",  color: "#d97706", bg: "#fef9c3" },
-  "Hot":       { icon: "🌶🌶", color: "#ea580c", bg: "#ffedd5" },
+  Mild: { icon: "🌿", color: "#16a34a", bg: "#dcfce7" },
+  Medium: { icon: "🌶", color: "#d97706", bg: "#fef9c3" },
+  Hot: { icon: "🌶🌶", color: "#ea580c", bg: "#ffedd5" },
   "Extra Hot": { icon: "🌶🌶🌶", color: "#dc2626", bg: "#fee2e2" },
 };
 
 const TAG_COLORS = {
-  "Bestseller":    { color: "#92400e", bg: "#fef3c7" },
-  "New":           { color: "#1e40af", bg: "#dbeafe" },
-  "Veg":           { color: "#166534", bg: "#dcfce7" },
-  "Non-Veg":       { color: "#991b1b", bg: "#fee2e2" },
-  "Spicy":         { color: "#9a3412", bg: "#ffedd5" },
-  "Chef's Special":{ color: "#6b21a8", bg: "#f3e8ff" },
+  Bestseller: { color: "#92400e", bg: "#fef3c7" },
+  New: { color: "#1e40af", bg: "#dbeafe" },
+  Veg: { color: "#166534", bg: "#dcfce7" },
+  "Non-Veg": { color: "#991b1b", bg: "#fee2e2" },
+  Spicy: { color: "#9a3412", bg: "#ffedd5" },
+  "Chef's Special": { color: "#6b21a8", bg: "#f3e8ff" },
 };
 
 const FoodItem = ({
-  image, name, price, desc, id,
-  restaurantName, prepTime, spiceLevel,
-  tags, avgRating = 0, ratingCount = 0,
+  image,
+  name,
+  price,
+  desc,
+  id,
+  restaurantName,
+  prepTime,
+  spiceLevel,
+  tags,
+  avgRating = 0,
+  ratingCount = 0,
 }) => {
   const { cartItems, addToCart, removeFromCart } = useContext(StoreContext);
   const imageUrl = image || placeholder;
-  const spice    = spiceLevel && SPICE_CONFIG[spiceLevel];
+  const spice = spiceLevel && SPICE_CONFIG[spiceLevel];
 
   return (
     <div className="food-item">
@@ -63,9 +71,17 @@ const FoodItem = ({
           />
         ) : (
           <div className="food-item-counter">
-            <img src={assets.remove_icon_red} onClick={() => removeFromCart(id)} alt="Remove" />
+            <img
+              src={assets.remove_icon_red}
+              onClick={() => removeFromCart(id)}
+              alt="Remove"
+            />
             <p>{cartItems[id]}</p>
-            <img src={assets.add_icon_green} onClick={() => addToCart(id)} alt="Add" />
+            <img
+              src={assets.add_icon_green}
+              onClick={() => addToCart(id)}
+              alt="Add"
+            />
           </div>
         )}
       </div>
@@ -76,11 +92,7 @@ const FoodItem = ({
 
         {/* ✅ Real star rating replacing static image */}
         <div className="food-item-rating-row">
-          <StarRating
-            rating={avgRating}
-            count={ratingCount}
-            size="sm"
-          />
+          <StarRating rating={avgRating} count={ratingCount} size="sm" />
         </div>
 
         {/* Meta: prep time + spice */}

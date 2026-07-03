@@ -17,4 +17,4 @@ export const assets = {
     dashboard_icon
 }
 
-export const url = "https://yummix-backend.vercel.app";
+export const url = "http://localhost:4000";

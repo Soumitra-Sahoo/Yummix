@@ -1,0 +1,22 @@
+@import "tailwindcss";
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f9fafb;
+  color: #1a1a2e;
+}
+
+/* Leaflet fix inside modals */
+.leaflet-container {
+  z-index: 0;
+}
+
+@theme {
+  --color-brand: #f59e0b;
+  --color-brand-dark: #d97706;
+  --color-surface: #ffffff;
+  --color-text: #111827;
+}
