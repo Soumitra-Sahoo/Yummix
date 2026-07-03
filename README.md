@@ -7,47 +7,51 @@
 ![Express.js](https://img.shields.io/badge/Express.js-Backend-black?logo=express)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Database-green?logo=mongodb)
 ![JWT](https://img.shields.io/badge/JWT-Authentication-orange)
+![Stripe](https://img.shields.io/badge/Stripe-Payments-blueviolet?logo=stripe)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8?logo=tailwindcss)
 ![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 </p>
 
-A full-stack **multi-restaurant food delivery platform** built using the **MERN Stack**. Yummix enables customers to discover restaurants, browse menus, place orders, manage carts, and track order history while providing dedicated dashboards for restaurant owners and administrators.
+A production-grade **multi-restaurant food delivery platform** built using the **MERN Stack**. Yummix enables customers to discover nearby restaurants, browse menus, place orders (online or COD), and track deliveries in real-time — while providing dedicated dashboards for restaurant owners, administrators, and delivery riders.
 
-Designed with modern full-stack engineering practices, Yummix focuses on scalability, maintainability, responsive design, and secure API architecture.
+Designed with modern full-stack engineering practices: scalable REST APIs, JWT-based role authentication, auto rider assignment, dynamic delivery fee calculation, and Cloudinary media storage.
 
 ---
 
 ## 📚 Table of Contents
 
-* Overview
-* Features
-* Architecture
-* Technology Stack
-* Project Structure
-* Installation
-* Environment Variables
-* Local Development
-* Docker Setup
-* API Endpoints
-* Security Features
-* Future Improvements
-* Contributing
-* License
-* Author
+* [Overview](#overview)
+* [Features](#features)
+* [Architecture](#architecture)
+* [Technology Stack](#technology-stack)
+* [Project Structure](#project-structure)
+* [Installation](#installation)
+* [Environment Variables](#environment-variables)
+* [Local Development](#local-development)
+* [Docker Setup](#docker-setup)
+* [API Endpoints](#api-endpoints)
+* [Security Features](#security-features)
+* [Future Improvements](#future-improvements)
+* [Contributing](#contributing)
+* [License](#license)
+* [Author](#author)
 
 ---
 
 ## 🚀 Overview
 
-Yummix is a complete food delivery ecosystem consisting of:
+Yummix is a complete food delivery ecosystem consisting of four separate applications:
 
-* Customer Application
-* Restaurant Dashboard
-* Admin Panel
-* REST API Backend
+| App | Port | Description |
+|-----|------|-------------|
+| **Customer Frontend** | 5173 | Customer-facing ordering app |
+| **Admin Panel** | 5174 | Restaurant owner dashboard |
+| **Rider Portal** | 5175 | Delivery partner app (React + Tailwind v4) |
+| **Backend API** | 4000 | Node.js + Express REST API |
 
-The platform supports multi-restaurant ordering workflows, menu management, secure authentication, image uploads, and order lifecycle management.
+The platform supports multi-restaurant ordering, real-time order tracking, automatic rider assignment, dynamic delivery fees, COD payments, and a full 7-step order status pipeline.
 
 ---
 
@@ -55,99 +59,132 @@ The platform supports multi-restaurant ordering workflows, menu management, secu
 
 ### 👤 Customer Features
 
-* User Registration & Login
-* JWT Authentication
-* Browse Restaurants
-* Restaurant-Specific Menus
-* Food Search
-* Category Filtering
-* Add to Cart
-* Update Cart Quantity
-* Remove Items from Cart
-* Quick Checkout
-* Coupon Support
-* Place Orders
-* Order History
-* Responsive Design
+* User Registration & Login (JWT)
+* Browse Restaurants within **10km radius** (Haversine formula)
+* Restaurant-specific menus with food categories, ratings, tags
+* Food search and category filtering
+* Add to cart (single restaurant enforcement)
+* Dynamic delivery fee (₹17 base + ₹4/km beyond 2km)
+* Coupon support (`FIRST15` — 15% off first order)
+* **Two payment methods: Stripe (online) & Cash on Delivery (COD)**
+* 7-step real-time order tracking timeline
+* Live rider info (name, phone, vehicle number, call button)
+* Rate delivered food items (star ratings)
+* Order history with expandable details
+* Empty cart state with Browse Menu CTA
+* Auto-fill delivery address using GPS
 
 ---
 
 ### 🏪 Restaurant Features
 
-* Restaurant Registration
-* Restaurant Authentication
-* Restaurant Approval Workflow
-* Food Inventory Management
-* Food CRUD Operations
-* Menu Management
-* Image Upload Support
-* Restaurant Order Management
-* Dashboard Analytics
+* Restaurant Registration & Login
+* Admin approval workflow
+* **Set exact restaurant pin location** (Leaflet map, GPS button)
+* Food CRUD with image upload (Cloudinary)
+* 15 food categories, spice level, prep time, tags, availability toggle
+* Full order management with **7-status dropdown**
+* View rider assigned to each order
+* Dashboard analytics (revenue, orders, top items)
 
 ---
 
 ### 👨‍💼 Admin Features
 
-* Admin Authentication
-* Dashboard Analytics
-* Restaurant Approval System
-* Restaurant Monitoring
-* Food Monitoring
-* Order Management
-* Revenue Overview
+* Admin authentication
+* Dashboard analytics (total revenue, orders, restaurants, users)
+* Restaurant approval / rejection
+* Food monitoring across all restaurants
+* Order management with status control
+* Revenue overview
+
+---
+
+### 🛵 Rider Portal Features
+
+* Rider registration with document uploads (Aadhaar, License, Profile photo)
+* JWT authentication with role-based access (`role: "rider"`)
+* Manual verification via MongoDB (`verificationStatus: "approved"`)
+* **Auto-assignment**: nearest available rider assigned on payment
+* 60-second accept/reject countdown with reassignment on timeout
+* Queued order processing when rider comes online
+* Earnings: **₹4/km** (restaurant → customer) + **₹100 bonus** every 10 deliveries
+* Leaflet.js delivery map (restaurant pin + customer pin)
+* Google Maps navigation link
+* GPS location polling every 30 seconds
+* New order alert with vibration + sound
+* Online/Offline toggle
+* Delivery history, earnings chart (Recharts), profile management
+* Withdrawal button (UI — payout integration ready)
 
 ---
 
 ### ⚙️ Backend Features
 
-* RESTful API Architecture
-* JWT Security
-* Authentication Middleware
-* MongoDB Integration
-* Cloudinary Image Storage
-* Multer File Uploads
-* Error Handling
-* Environment-Based Configuration
+* RESTful API (MVC architecture)
+* JWT authentication with role-based middleware (`user`, `restaurant`, `admin`, `rider`)
+* MongoDB with Mongoose ODM
+* Cloudinary image storage (multi-file upload for riders)
+* Stripe payment integration
+* **COD order flow** (skips Stripe, directly triggers rider assignment)
+* Auto-assign nearest rider (Haversine sort)
+* 60s timeout + reassignment service
+* Queued order system for when no riders are available
+* Dynamic delivery fee calculated server-side
+* Input validation, error handling, CORS configuration
 
 ---
 
 ## 🏗 Architecture
 
 ```text
-Frontend (React + Vite)
-          │
-          ▼
-   Express.js API
-          │
-          ▼
-MongoDB Atlas Database
-
-          │
-          ├── JWT Authentication
-          ├── Cloudinary Storage
-          └── Stripe Payment Integration
+                    ┌─────────────────────────────────────┐
+                    │         Client Applications          │
+                    │                                     │
+                    │  Frontend    Admin     Rider Portal  │
+                    │  (5173)     (5174)     (5175)        │
+                    └──────────────┬──────────────────────┘
+                                   │ HTTP / REST
+                                   ▼
+                    ┌─────────────────────────────────────┐
+                    │         Express.js REST API          │
+                    │              (4000)                  │
+                    │                                     │
+                    │  ┌──────────┐  ┌─────────────────┐  │
+                    │  │   Auth   │  │  Assignment Svc  │  │
+                    │  │ JWT/Role │  │ Haversine + Queue│  │
+                    │  └──────────┘  └─────────────────┘  │
+                    └──────────────┬──────────────────────┘
+                                   │
+              ┌────────────────────┼─────────────────────┐
+              ▼                    ▼                      ▼
+     ┌──────────────┐    ┌──────────────────┐   ┌──────────────┐
+     │ MongoDB Atlas│    │    Cloudinary    │   │    Stripe    │
+     │  (Database)  │    │ (Image Storage)  │   │  (Payments)  │
+     └──────────────┘    └──────────────────┘   └──────────────┘
 ```
 
 ---
 
 ## 🛠 Technology Stack
 
-| Category         | Technologies                     |
-| ---------------- | -------------------------------- |
-| Frontend         | React.js, Vite, React Router DOM |
-| State Management | Context API                      |
-| HTTP Client      | Axios                            |
-| Backend          | Node.js, Express.js              |
-| Database         | MongoDB, Mongoose                |
-| Authentication   | JWT                              |
-| Security         | bcrypt.js                        |
-| File Uploads     | Multer                           |
-| Media Storage    | Cloudinary                       |
-| Payments         | Stripe                           |
-| Notifications    | React Toastify                   |
-| Deployment       | Vercel, Render, Railway          |
-| Containerization | Docker, Docker Compose           |
-| Version Control  | Git, GitHub                      |
+| Category | Technologies |
+|----------|-------------|
+| Frontend | React 18, Vite, React Router DOM, Plain CSS |
+| Rider Portal | React 18, Vite, **Tailwind CSS v4**, Leaflet.js, Recharts |
+| State Management | Context API |
+| HTTP Client | Axios |
+| Backend | Node.js, Express.js |
+| Database | MongoDB, Mongoose |
+| Authentication | JWT (role-based: user / restaurant / admin / rider) |
+| Security | bcrypt.js |
+| File Uploads | Multer + Cloudinary |
+| Payments | Stripe + Cash on Delivery (COD) |
+| Maps | Leaflet.js + OpenStreetMap (free, no API key) |
+| Notifications | React Toastify |
+| Deployment | Vercel (frontend/admin/rider), Railway/Render (backend) |
+| Containerization | Docker, Docker Compose |
+| Version Control | Git, GitHub |
 
 ---
 
@@ -156,26 +193,57 @@ MongoDB Atlas Database
 ```text
 food-delivery/
 │
-├── frontend/
+├── frontend/                     # Customer app (React + Vite)
 │   ├── src/
-│   ├── public/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── Context/StoreContext.jsx
+│   │   └── assets/
 │   └── package.json
 │
-├── admin/
+├── admin/                        # Restaurant admin (React + Vite)
 │   ├── src/
-│   ├── public/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   │   ├── RestaurantLocation/   # Leaflet pin map
+│   │   │   ├── Orders/
+│   │   │   └── Dashboard/
 │   └── package.json
 │
-├── backend/
+├── rider/                        # Rider portal (React + Vite + Tailwind v4)
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── AssignmentAlert.jsx   # New order popup with countdown
+│   │   │   ├── DeliveryMap.jsx       # Leaflet map
+│   │   │   └── Layout.jsx
+│   │   ├── pages/
+│   │   ├── context/RiderContext.jsx
+│   │   └── hooks/
+│   └── package.json
+│
+├── backend/                      # Express REST API
 │   ├── config/
 │   ├── controllers/
+│   │   ├── orderController.js        # Stripe + COD
+│   │   ├── riderController.js
+│   │   ├── riderOrderController.js   # Accept/reject/status
+│   │   └── riderDashboardController.js
 │   ├── middleware/
+│   │   ├── auth.js
+│   │   ├── adminAuth.js
+│   │   ├── restaurantAuth.js
+│   │   └── riderAuth.js
 │   ├── models/
+│   │   ├── orderModel.js             # paymentMethod: stripe | cod
+│   │   ├── riderModel.js
+│   │   ├── riderEarningsModel.js     # Per-delivery earnings
+│   │   └── riderAssignmentModel.js   # Assignment + timeout tracking
 │   ├── routes/
+│   ├── services/
+│   │   └── riderAssignmentService.js # Haversine, auto-assign, queue
 │   └── package.json
 │
 ├── docker-compose.yml
-├── package.json
 └── README.md
 ```
 
@@ -187,199 +255,191 @@ food-delivery/
 
 ```bash
 git clone https://github.com/Soumitra-Sahoo/Yummix.git
-
 cd Yummix
 ```
 
----
-
 ### Install Dependencies
 
-#### Frontend
-
 ```bash
-cd frontend
-npm install
-```
+# Backend
+cd backend && npm install
 
-#### Backend
+# Frontend
+cd ../frontend && npm install
 
-```bash
-cd backend
-npm install
-```
+# Admin Panel
+cd ../admin && npm install
+# Install Leaflet for restaurant location map
+npm install leaflet react-leaflet
 
-#### Admin Panel
-
-```bash
-cd admin
-npm install
+# Rider Portal
+cd ../rider && npm install
 ```
 
 ---
 
 ## 🔐 Environment Variables
 
-Create a `.env` file inside the backend directory.
+### `backend/.env`
 
 ```env
 PORT=4000
-
-MONGODB_URI=your_mongodb_connection_string
-
-JWT_SECRET=your_secret_key
-
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
 STRIPE_SECRET_KEY=your_stripe_secret_key
-
+FRONTEND_URL=http://localhost:5173
 CLOUDINARY_CLOUD_NAME=your_cloud_name
-
 CLOUDINARY_API_KEY=your_api_key
-
 CLOUDINARY_API_SECRET=your_api_secret
+```
+
+### `frontend/.env`
+
+```env
+VITE_API_URL=http://localhost:4000
+```
+
+### `rider/.env`
+
+```env
+VITE_API_URL=http://localhost:4000
 ```
 
 ---
 
 ## 💻 Local Development
 
-### Start Backend
-
 ```bash
-cd backend
-npm start
-```
+# Backend (port 4000)
+cd backend && npm start
 
-Runs on:
+# Frontend (port 5173)
+cd frontend && npm run dev
 
-```text
-http://localhost:4000
+# Admin Panel (port 5174)
+cd admin && npm run dev
+
+# Rider Portal (port 5175)
+cd rider && npm run dev
 ```
 
 ---
 
-### Start Frontend
+## 🛵 Rider Setup (First Time)
 
-```bash
-cd frontend
-npm run dev
-```
-
-Runs on:
-
-```text
-http://localhost:5173
-```
-
----
-
-### Start Admin Panel
-
-```bash
-cd admin
-npm run dev
-```
-
-Runs on:
-
-```text
-http://localhost:5174
-```
+1. Register at `http://localhost:5175/register` (upload Aadhaar, License, Profile photo)
+2. In MongoDB Atlas → `riders` collection → set `verificationStatus: "approved"` manually
+3. Login → click **Online** toggle → allow browser location permission
+4. Place a test order from frontend — rider receives assignment alert within 8 seconds
 
 ---
 
 ## 🐳 Docker Setup
 
-### Build Containers
-
 ```bash
+# Build and start all containers
 docker compose build
-```
-
-### Start Containers
-
-```bash
 docker compose up -d
-```
 
-### Stop Containers
-
-```bash
+# Stop containers
 docker compose down
-```
 
-### View Running Containers
-
-```bash
-docker ps
+# View logs
+docker compose logs -f
 ```
 
 ---
 
 ## 📡 API Endpoints
 
-### Authentication
+### User Authentication
 
-| Method | Endpoint             | Description   |
-| ------ | -------------------- | ------------- |
-| POST   | `/api/user/register` | Register User |
-| POST   | `/api/user/login`    | Login User    |
-| POST   | `/api/admin/login`   | Admin Login   |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/user/register` | Register user |
+| POST | `/api/user/login` | Login user |
 
----
+### Admin
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/admin/login` | Admin login |
+| GET | `/api/admin/dashboard` | Dashboard stats |
 
 ### Restaurants
 
-| Method | Endpoint                   | Description         |
-| ------ | -------------------------- | ------------------- |
-| GET    | `/api/restaurant/list`     | Get Restaurants     |
-| POST   | `/api/restaurant/register` | Register Restaurant |
-| POST   | `/api/restaurant/login`    | Restaurant Login    |
-
----
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/restaurant/list` | All approved restaurants |
+| POST | `/api/restaurant/register` | Register restaurant |
+| POST | `/api/restaurant/login` | Restaurant login |
+| POST | `/api/restaurant/location/update` | Set pin location |
 
 ### Foods
 
-| Method | Endpoint                   | Description     |
-| ------ | -------------------------- | --------------- |
-| GET    | `/api/food/list`           | Get All Foods   |
-| POST   | `/api/food/add`            | Add Food        |
-| POST   | `/api/food/remove`         | Remove Food     |
-| GET    | `/api/food/restaurant/:id` | Restaurant Menu |
-
----
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/food/list` | All food items |
+| POST | `/api/food/add` | Add food (with image) |
+| POST | `/api/food/remove` | Remove food |
+| GET | `/api/food/restaurant/:id` | Restaurant menu |
 
 ### Orders
 
-| Method | Endpoint                | Description         |
-| ------ | ----------------------- | ------------------- |
-| POST   | `/api/order/place`      | Place Order         |
-| POST   | `/api/order/userorders` | User Orders         |
-| POST   | `/api/order/status`     | Update Order Status |
-| POST   | `/api/order/verify`     | Verify Payment      |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/order/place` | Place order (Stripe) |
+| POST | `/api/order/place-cod` | Place order (COD) |
+| POST | `/api/order/verify` | Verify Stripe payment |
+| POST | `/api/order/userorders` | User order history |
+| POST | `/api/order/status` | Update status (admin) |
+
+### Rider
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/rider/register` | Register with documents |
+| POST | `/api/rider/login` | Rider login |
+| GET | `/api/rider/profile` | Get profile |
+| POST | `/api/rider/toggle-online` | Go online/offline |
+| POST | `/api/rider/update-location` | Send GPS (every 30s) |
+| GET | `/api/rider-order/pending-assignment` | Poll for new order (8s) |
+| POST | `/api/rider-order/accept` | Accept delivery |
+| POST | `/api/rider-order/reject` | Reject delivery |
+| POST | `/api/rider-order/update-status` | Update delivery status |
+| GET | `/api/rider-dashboard` | Dashboard stats + chart |
+
+### Ratings
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/rating/submit` | Submit food rating |
+| POST | `/api/rating/order/:orderId` | Get order ratings |
 
 ---
 
 ## 🔒 Security Features
 
-* JWT Authentication
-* Password Hashing with bcrypt
-* Protected API Routes
-* Secure Environment Variables
-* Input Validation
-* Secure Database Access
-* Authentication Middleware
+* JWT authentication with role-based middleware
+* Password hashing with bcrypt
+* Protected API routes per role (user / restaurant / admin / rider)
+* Secure environment variables
+* Input validation
+* CORS configured for all three frontend origins
+* Multi-file upload validation (Cloudinary)
 
 ---
 
 ## 📈 Future Improvements
 
-* Redis Caching
-* Push Notifications
-* AI-Powered Food Recommendations
-* Progressive Web App (PWA)
-* Advanced Restaurant Analytics
-* Live Delivery Tracking
-* Multi-Language Support
+* **Socket.io** — real-time live rider GPS tracking
+* **Firebase FCM** — push notifications for order updates
+* **Razorpay Payout API** — automated weekly rider payouts
+* **Redis** — caching for food list and restaurant data
+* **Twilio / MSG91** — OTP verification for riders
+* **PWA** — installable mobile app experience
+* **AI recommendations** — personalized food suggestions
+* **Multi-language** — Hindi and regional language support
 
 ---
 
@@ -398,7 +458,7 @@ git commit -m "Add new feature"
 git push origin feature/my-feature
 ```
 
-Then create a Pull Request describing your changes.
+Then open a Pull Request describing your changes.
 
 ---
 
@@ -410,9 +470,9 @@ This project is licensed under the MIT License.
 
 ## 👨‍💻 Author
 
-### Soumitra Sahoo
+**Soumitra Sahoo**
 
-* GitHub: https://github.com/Soumitra-Sahoo
+* GitHub: [Soumitra-Sahoo](https://github.com/Soumitra-Sahoo)
 * Project: Yummix Food Delivery Platform
 
 ---
@@ -427,6 +487,4 @@ If you found this project helpful:
 
 ---
 
-<p align="center">
-Built with ❤️ using the MERN Stack
-</p>
+<p align="center">Built with ❤️ using the MERN Stack</p>
