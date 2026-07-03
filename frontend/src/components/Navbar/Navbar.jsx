@@ -39,12 +39,14 @@ const Navbar = ({ setShowLogin, setSearchQuery }) => {
     return () => clearInterval(typing);
   }, []);
 
-  const { getTotalCartAmount, token, setToken } = useContext(StoreContext);
+  const { getTotalCartAmount, token, setToken, user, setUser } =
+    useContext(StoreContext);
   const navigate = useNavigate();
 
   const logout = () => {
     localStorage.removeItem("token");
     setToken("");
+    setUser(null);
     navigate("/");
   };
 
@@ -163,14 +165,28 @@ const Navbar = ({ setShowLogin, setSearchQuery }) => {
           <div className="navbar-profile">
             <img src={assets.profile_icon} alt="" />
             <ul className="navbar-profile-dropdown">
-              <li onClick={() => navigate("/myorders")}>
-                {" "}
-                <img src={assets.bag_icon} alt="" /> <p>Orders</p>
-              </li>
+              <div className="profile-user-info">
+                <h4>{user?.name}</h4>
+                <p>{user?.email}</p>
+              </div>
+
               <hr />
+
+              <li onClick={() => navigate("/profile")}>
+                <span>👤</span>
+                <p>My Profile</p>
+              </li>
+
+              <li onClick={() => navigate("/myorders")}>
+                <img src={assets.bag_icon} alt="" />
+                <p>My Orders</p>
+              </li>
+
+              <hr />
+
               <li onClick={logout}>
-                {" "}
-                <img src={assets.logout_icon} alt="" /> <p>Logout</p>
+                <img src={assets.logout_icon} alt="" />
+                <p>Logout</p>
               </li>
             </ul>
           </div>

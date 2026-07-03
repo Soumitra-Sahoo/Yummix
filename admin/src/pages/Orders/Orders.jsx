@@ -4,50 +4,59 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { assets, url } from "../../assets/assets";
 
+const STATUS_OPTIONS = [
+  "Food Processing",
+  "Preparing Food",
+  "Waiting for Rider",
+  "Rider Assigned",
+  "Picked Up",
+  "Out for Delivery",
+  "Delivered",
+];
+
+const STATUS_CLASS = {
+  "Food Processing": "processing",
+  "Preparing Food": "preparing",
+  "Waiting for Rider": "waiting",
+  "Rider Assigned": "assigned",
+  "Picked Up": "picked",
+  "Out for Delivery": "delivery",
+  Delivered: "delivered",
+};
+
 const Order = () => {
   const [orders, setOrders] = useState([]);
 
-  // FETCH ORDERS
   const fetchAllOrders = async () => {
     try {
       const response = await axios.get(`${url}/api/order/restaurant-orders`, {
-        headers: {
-          token: localStorage.getItem("restaurantToken"),
-        },
+        headers: { token: localStorage.getItem("restaurantToken") },
       });
-
       if (response.data.success) {
-        setOrders(response.data.data.reverse());
+        setOrders(response.data.data.slice().reverse());
       } else {
         toast.error("Error fetching orders");
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error("Something went wrong");
     }
   };
 
-  // UPDATE STATUS
   const statusHandler = async (event, orderId) => {
     try {
       const response = await axios.post(
         `${url}/api/order/restaurant-status`,
-        {
-          orderId,
-          status: event.target.value,
-        },
-        {
-          headers: {
-            token: localStorage.getItem("restaurantToken"),
-          },
-        },
+        { orderId, status: event.target.value },
+        { headers: { token: localStorage.getItem("restaurantToken") } },
       );
-
       if (response.data.success) {
         fetchAllOrders();
+        toast.success("Status updated");
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      toast.error("Failed to update status");
     }
   };
 
@@ -57,80 +66,115 @@ const Order = () => {
 
   return (
     <div className="orders-page">
-      {/* HEADER */}
       <div className="orders-header">
         <h2>Orders Management</h2>
-
         <p>Total Orders : {orders.length}</p>
       </div>
 
-      {/* ORDERS */}
       <div className="orders-container">
-        {orders.map((order, index) => (
-          <div key={index} className="modern-order-card">
-            {/* LEFT SIDE */}
-            <div className="order-left">
-              <div className="order-icon-box">
-                <img src={assets.parcel_icon} alt="" />
+        {orders.length === 0 && (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "60px 20px",
+              color: "#9ca3af",
+            }}
+          >
+            <p style={{ fontSize: 48, marginBottom: 12 }}>📦</p>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: "#1a1a2e" }}>
+              No orders yet
+            </h3>
+            <p style={{ fontSize: 14 }}>
+              Orders from customers will appear here
+            </p>
+          </div>
+        )}
+
+        {orders.map((order, index) => {
+          const isCOD = order.paymentMethod === "cod";
+          const isPaid = order.payment;
+
+          return (
+            <div key={index} className="modern-order-card">
+              {/* LEFT */}
+              <div className="order-left">
+                <div className="order-icon-box">
+                  <img src={assets.parcel_icon} alt="" />
+                </div>
+
+                <div className="order-info">
+                  <h3>
+                    {order.items.map((item, i) =>
+                      i === order.items.length - 1
+                        ? `${item.name} x ${item.quantity}`
+                        : `${item.name} x ${item.quantity}, `,
+                    )}
+                  </h3>
+
+                  <div className="customer-info">
+                    <h4>
+                      {order.address?.firstName} {order.address?.lastName}
+                    </h4>
+                    <p>{order.address?.street}</p>
+                    <p>
+                      {order.address?.city}, {order.address?.state},{" "}
+                      {order.address?.country}
+                    </p>
+                    <p>📞 {order.address?.phone}</p>
+                  </div>
+
+                  {/* ✅ Payment method tag */}
+                  <div className="order-tags">
+                    {isCOD ? (
+                      <span
+                        className={`tag ${isPaid ? "tag-paid" : "tag-cod"}`}
+                      >
+                        {isPaid ? "✅ COD Paid" : "💵 Cash on Delivery"}
+                      </span>
+                    ) : (
+                      <span className="tag tag-paid">💳 Paid Online</span>
+                    )}
+
+                    {/* Rider tag */}
+                    {order.riderId && (
+                      <span className="tag tag-rider">
+                        🛵 {order.riderId?.name || "Rider Assigned"}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div className="order-info">
-                {/* FOOD ITEMS */}
-                <h3>
-                  {order.items.map((item, index) =>
-                    index === order.items.length - 1
-                      ? `${item.name} x ${item.quantity}`
-                      : `${item.name} x ${item.quantity}, `,
-                  )}
-                </h3>
+              {/* RIGHT */}
+              <div className="order-right">
+                <div className="order-stat">
+                  <span>Items</span>
+                  <h3>{order.items.length}</h3>
+                </div>
+                <div className="order-stat">
+                  <span>Total</span>
+                  <h3>₹{order.amount?.toFixed(2)}</h3>
+                </div>
 
-                <div className="customer-info">
-                  <h4>
-                    {order.address.firstName} {order.address.lastName}
-                  </h4>
-                  <p>{order.address.street}</p>
-                  <p>
-                    {order.address.city}, {order.address.state},{" "}
-                    {order.address.country}
-                  </p>
-                  <p>📞 {order.address.phone}</p>
+                <div
+                  className={`status-badge ${STATUS_CLASS[order.status] || "processing"}`}
+                >
+                  <span className="status-dot" />
+                  <select
+                    onChange={(e) => statusHandler(e, order._id)}
+                    value={order.status}
+                  >
+                    {STATUS_OPTIONS.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
-
-            {/* RIGHT SIDE */}
-            <div className="order-right">
-              <div className="order-stat">
-                <span>Items</span>
-                <h3>{order.items.length}</h3>
-              </div>
-              <div className="order-stat">
-                <span>Total</span>
-                <h3>₹{order.amount}</h3>
-              </div>
-              <div
-                className={`status-badge ${
-                  order.status === "Food Processing"
-                    ? "processing"
-                    : order.status === "Out for delivery"
-                      ? "delivery"
-                      : "delivered"
-                }`}
-              >
-                <span className="status-dot"></span>
-
-                <select
-                  onChange={(e) => statusHandler(e, order._id)}
-                  value={order.status}
-                >
-                  <option value="Food Processing">Processing</option>
-                  <option value="Out for delivery">Out for delivery</option>
-                  <option value="Delivered">Delivered</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

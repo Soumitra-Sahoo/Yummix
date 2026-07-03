@@ -7,6 +7,7 @@ import Cart from './pages/Cart/Cart'
 import LoginPopup from './components/LoginPopup/LoginPopup'
 import PlaceOrder from './pages/PlaceOrder/PlaceOrder'
 import MyOrders from './pages/MyOrders/MyOrders'
+import ExploreMenu from './components/ExploreMenu/ExploreMenu'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Verify from './pages/Verify/Verify'
@@ -19,6 +20,7 @@ import Terms from "./pages/About/Terms";
 import ScrollToTop from "./components/ScrollToTop";
 import Restaurant from "./pages/Restaurant/Restaurant";
 import QuickCheckout from "./components/QuickCheckout/QuickCheckout";
+import Profile from "./pages/Profile/Profile";
 import "./App.css";
 
 const App = () => {
@@ -37,6 +39,7 @@ const App = () => {
         <QuickCheckout />
         <Routes>
           <Route path='/' element={<Home searchQuery={searchQuery}  />}/>
+          <Route path='/menu' element={<ExploreMenu/>}/>
           <Route path='/cart' element={<Cart />}/>
           <Route path='/order' element={<PlaceOrder />}/>
           <Route path='/myorders' element={<MyOrders />}/>
@@ -47,6 +50,7 @@ const App = () => {
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/restaurant/:id" element={<Restaurant />} />
         </Routes>
       </div>

@@ -5,16 +5,31 @@ import { StoreContext } from "../../Context/StoreContext";
 import { assets } from "../../assets/assets";
 import RatingModal from "../../components/RatingModal/RatingModal";
 
+const STATUS_STEPS = [
+  "Food Processing",
+  "Preparing Food",
+  "Waiting for Rider",
+  "Rider Assigned",
+  "Picked Up",
+  "Out for Delivery",
+  "Delivered",
+];
+
 const STATUS_COLOR = {
   "Food Processing": { color: "#d97706", bg: "#fef9c3", dot: "#f59e0b" },
-  "Out for delivery": { color: "#2563eb", bg: "#eff6ff", dot: "#3b82f6" },
+  "Preparing Food": { color: "#ea580c", bg: "#ffedd5", dot: "#f97316" },
+  "Waiting for Rider": { color: "#6b7280", bg: "#f3f4f6", dot: "#9ca3af" },
+  "Rider Assigned": { color: "#2563eb", bg: "#eff6ff", dot: "#3b82f6" },
+  "Picked Up": { color: "#7c3aed", bg: "#f5f3ff", dot: "#8b5cf6" },
+  "Out for Delivery": { color: "#0891b2", bg: "#ecfeff", dot: "#06b6d4" },
   Delivered: { color: "#16a34a", bg: "#dcfce7", dot: "#22c55e" },
 };
 
 const MyOrders = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [ratingOrder, setRatingOrder] = useState(null); // order being rated
+  const [ratingOrder, setRatingOrder] = useState(null);
+  const [expandedOrder, setExpandedOrder] = useState(null);
   const { url, token } = useContext(StoreContext);
 
   const fetchOrders = async () => {
@@ -24,7 +39,7 @@ const MyOrders = () => {
         {},
         { headers: { token } },
       );
-      setData((response.data.data || []).reverse());
+      setData((response.data.data || []).slice().reverse());
     } catch (error) {
       console.error(error);
     } finally {
@@ -78,10 +93,14 @@ const MyOrders = () => {
           const statusStyle =
             STATUS_COLOR[order.status] || STATUS_COLOR["Food Processing"];
           const isDelivered = order.status === "Delivered";
+          const isExpanded = expandedOrder === order._id;
+          const stepIdx = STATUS_STEPS.indexOf(order.status);
+          const rider = order.riderId;
+          const isCOD = order.paymentMethod === "cod";
 
           return (
             <div key={index} className="order-card">
-              {/* Left: icon + items */}
+              {/* ── Top Row ── */}
               <div className="order-card-left">
                 <div className="order-parcel-icon">
                   <img src={assets.parcel_icon} alt="order" />
@@ -101,13 +120,22 @@ const MyOrders = () => {
                     <span className="order-amount">
                       ₹{order.amount.toFixed(2)}
                     </span>
+                    {" · "}
+                    {/* ✅ COD / Paid badge */}
+                    {isCOD ? (
+                      <span
+                        className={`payment-pill ${order.payment ? "paid" : "cod-pending"}`}
+                      >
+                        {order.payment ? "✅ COD Paid" : "💵 Pay on Delivery"}
+                      </span>
+                    ) : (
+                      <span className="payment-pill paid">💳 Paid Online</span>
+                    )}
                   </p>
                 </div>
               </div>
 
-              {/* Right: status + actions */}
               <div className="order-card-right">
-                {/* Status badge */}
                 <div
                   className="order-status-badge"
                   style={{
@@ -122,28 +150,83 @@ const MyOrders = () => {
                   {order.status}
                 </div>
 
-                {/* Buttons */}
                 <div className="order-actions">
-                  {isDelivered ? (
+                  <button
+                    className="btn-track"
+                    onClick={() => {
+                      fetchOrders();
+                      setExpandedOrder(isExpanded ? null : order._id);
+                    }}
+                  >
+                    {isExpanded ? "Hide" : "Track"}
+                  </button>
+                  {isDelivered && (
                     <button
                       className="btn-rate"
                       onClick={() => setRatingOrder(order)}
                     >
-                      ⭐ Rate Order
-                    </button>
-                  ) : (
-                    <button className="btn-track" onClick={fetchOrders}>
-                      Refresh
+                      ⭐ Rate
                     </button>
                   )}
                 </div>
               </div>
+
+              {isExpanded && (
+                <div className="order-expanded">
+                  {isCOD && !order.payment && (
+                    <div className="cod-banner">
+                      💵 Please keep <strong>₹{order.amount.toFixed(2)}</strong>{" "}
+                      ready to pay the delivery partner in cash.
+                    </div>
+                  )}
+
+                  {/* Rider Info Card */}
+                  {rider && (
+                    <div className="rider-info-card">
+                      <img
+                        src={
+                          rider.profileImage ||
+                          `https://ui-avatars.com/api/?name=${rider.name}`
+                        }
+                        alt={rider.name}
+                        className="rider-avatar"
+                      />
+                      <div className="rider-details">
+                        <p className="rider-name">🛵 {rider.name}</p>
+                        <p className="rider-vehicle">{rider.vehicleNumber}</p>
+                      </div>
+                      <a href={`tel:${rider.phone}`} className="rider-call-btn">
+                        📞 Call
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Status Timeline */}
+                  <div className="order-timeline">
+                    {STATUS_STEPS.map((step, i) => {
+                      const isDone = i <= stepIdx;
+                      const isCurrent = i === stepIdx;
+                      return (
+                        <div
+                          key={step}
+                          className={`timeline-step ${isDone ? "done" : ""} ${isCurrent ? "current" : ""}`}
+                        >
+                          <div className="timeline-dot">
+                            {isDone ? "✓" : ""}
+                          </div>
+                          <div className="timeline-line" />
+                          <span className="timeline-label">{step}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
       </div>
 
-      {/* Rating Modal */}
       {ratingOrder && (
         <RatingModal
           order={ratingOrder}

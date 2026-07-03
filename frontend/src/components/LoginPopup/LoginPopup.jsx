@@ -7,7 +7,8 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 const LoginPopup = ({ setShowLogin }) => {
-  const { setToken, url, loadCartData } = useContext(StoreContext);
+  const { setToken, url, loadCartData, fetchUserProfile } =
+    useContext(StoreContext);
   const [currState, setCurrState] = useState("Sign Up");
   const [data, setData] = useState({ name: "", email: "", password: "" });
   const navigate = useNavigate();
@@ -23,7 +24,8 @@ const LoginPopup = ({ setShowLogin }) => {
     if (response.data.success) {
       setToken(response.data.token);
       localStorage.setItem("token", response.data.token);
-      loadCartData(response.data.token);
+      await loadCartData(response.data.token);
+      await fetchUserProfile(response.data.token);
       setShowLogin(false);
     } else {
       toast.error(response.data.message);
@@ -40,7 +42,11 @@ const LoginPopup = ({ setShowLogin }) => {
       <form onSubmit={onLogin} className="login-popup-container">
         <div className="login-popup-title">
           <h2>{currState}</h2>
-          <img onClick={() => setShowLogin(false)} src={assets.cross_icon} alt="close" />
+          <img
+            onClick={() => setShowLogin(false)}
+            src={assets.cross_icon}
+            alt="close"
+          />
         </div>
 
         <div className="login-popup-inputs">

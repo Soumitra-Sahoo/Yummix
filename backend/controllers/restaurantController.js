@@ -3,51 +3,30 @@ import jwt from "jsonwebtoken";
 import validator from "validator";
 import restaurantModel from "../models/restaurantModel.js";
 
-const createRestaurantToken = (id) => {
-  return jwt.sign(
-    {
-      id,
-      role: "restaurant",
-    },
-    process.env.JWT_SECRET,
-  );
-};
+const createRestaurantToken = (id) =>
+  jwt.sign({ id, role: "restaurant" }, process.env.JWT_SECRET);
 
-// Register Restaurant
 const registerRestaurant = async (req, res) => {
   try {
     const { restaurantName, ownerName, email, password, phone, address } =
       req.body;
 
     const exists = await restaurantModel.findOne({ email });
+    if (exists)
+      return res.json({ success: false, message: "Restaurant already exists" });
 
-    if (exists) {
+    if (!validator.isEmail(email))
+      return res.json({ success: false, message: "Invalid Email" });
+    if (password.length < 6)
       return res.json({
         success: false,
-        message: "Restaurant already exists",
+        message: "Password must be at least 6 characters",
       });
-    }
-
-    if (!validator.isEmail(email)) {
-      return res.json({
-        success: false,
-        message: "Invalid Email",
-      });
-    }
-
-    if (password.length < 8) {
-      return res.json({
-        success: false,
-        message: "Password must be at least 8 characters",
-      });
-    }
-
-    if (!req.file) {
+    if (!req.file)
       return res.json({
         success: false,
         message: "Restaurant image is required",
       });
-    }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -59,159 +38,88 @@ const registerRestaurant = async (req, res) => {
       password: hashedPassword,
       phone,
       address,
-      image: req.file?.path,
-      imagePublicId: req.file?.filename,
+      image: req.file.path,
+      imagePublicId: req.file.filename,
       isApproved: false,
     });
 
     res.json({
       success: true,
-      message: "Restaurant registration submitted. Awaiting approval.",
+      message: "Registration submitted. Awaiting approval.",
       restaurantId: restaurant._id,
     });
   } catch (error) {
-    console.log(error);
-
-    res.json({
-      success: false,
-      message: "Registration failed",
-    });
+    console.error(error);
+    res.json({ success: false, message: "Registration failed" });
   }
 };
 
-// Restaurant Login
 const loginRestaurant = async (req, res) => {
   try {
     const { restaurantName, phone, password } = req.body;
+    const restaurant = await restaurantModel.findOne({ restaurantName, phone });
 
-    const restaurant = await restaurantModel.findOne({ restaurantName,
-    phone, });
-
-    if (!restaurant) {
-      return res.json({
-        success: false,
-        message: "Restaurant not found",
-      });
-    }
+    if (!restaurant)
+      return res.json({ success: false, message: "Restaurant not found" });
 
     const isMatch = await bcrypt.compare(password, restaurant.password);
+    if (!isMatch)
+      return res.json({ success: false, message: "Invalid credentials" });
 
-    if (!isMatch) {
-      return res.json({
-        success: false,
-        message: "Invalid credentials",
-      });
-    }
-
-    if (!restaurant.isApproved) {
+    if (!restaurant.isApproved)
       return res.json({
         success: false,
         message: "Waiting for admin approval",
       });
-    }
 
     const token = createRestaurantToken(restaurant._id);
-
-    res.json({
-      success: true,
-      token,
-    });
+    res.json({ success: true, token });
   } catch (error) {
-    console.log(error);
-
-    res.json({
-      success: false,
-      message: "Login failed",
-    });
+    console.error(error);
+    res.json({ success: false, message: "Login failed" });
   }
 };
 
-// Pending Restaurants
 const getPendingRestaurants = async (req, res) => {
   try {
-    const restaurants = await restaurantModel.find({
-      isApproved: false,
-    });
-
-    res.json({
-      success: true,
-      data: restaurants,
-    });
+    const restaurants = await restaurantModel.find({ isApproved: false });
+    res.json({ success: true, data: restaurants });
   } catch (error) {
-    console.log(error);
-
-    res.json({
-      success: false,
-      message: "Error",
-    });
+    console.error(error);
+    res.json({ success: false, message: "Error" });
   }
 };
 
 const listRestaurants = async (req, res) => {
   try {
-    const restaurants = await restaurantModel.find({
-      isApproved: true,
-    });
-
-    res.json({
-      success: true,
-      data: restaurants,
-    });
+    const restaurants = await restaurantModel.find({ isApproved: true });
+    res.json({ success: true, data: restaurants });
   } catch (error) {
-    console.log(error);
-
-    res.json({
-      success: false,
-      message: "Error",
-    });
+    console.error(error);
+    res.json({ success: false, message: "Error" });
   }
 };
 
-// Approve Restaurant
 const approveRestaurant = async (req, res) => {
   try {
-    const { restaurantId } = req.body;
-
-    await restaurantModel.findByIdAndUpdate(restaurantId, {
+    await restaurantModel.findByIdAndUpdate(req.body.restaurantId, {
       isApproved: true,
     });
-
-    res.json({
-      success: true,
-      message: "Restaurant approved",
-    });
+    res.json({ success: true, message: "Restaurant approved" });
   } catch (error) {
-    console.log(error);
-
-    res.json({
-      success: false,
-      message: "Approval failed",
-    });
+    console.error(error);
+    res.json({ success: false, message: "Approval failed" });
   }
 };
 
 const getRestaurantProfile = async (req, res) => {
   try {
     const restaurant = await restaurantModel.findById(req.restaurantId);
-
-    if (!restaurant) {
-      return res.json({
-        success: false,
-        message: "Restaurant not found",
-      });
-    }
-
-    res.json({
-      success: true,
-      data: restaurant,
-    });
+    if (!restaurant) return res.json({ success: false, message: "Not found" });
+    res.json({ success: true, data: restaurant });
   } catch (error) {
-    console.log(error);
-
-    res.json({
-      success: false,
-      message: "Error",
-    });
+    console.error(error);
+    res.json({ success: false, message: "Error" });
   }
 };
 
@@ -223,18 +131,26 @@ const updateRestaurantProfile = async (req, res) => {
       phone: req.body.phone,
       address: req.body.address,
     });
-
-    res.json({
-      success: true,
-      message: "Profile Updated",
-    });
+    res.json({ success: true, message: "Profile Updated" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    res.json({ success: false, message: "Update Failed" });
+  }
+};
 
-    res.json({
-      success: false,
-      message: "Update Failed",
+const updateRestaurantLocation = async (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+    if (!lat || !lng) {
+      return res.json({ success: false, message: "lat and lng are required" });
+    }
+    await restaurantModel.findByIdAndUpdate(req.restaurantId, {
+      location: { lat: parseFloat(lat), lng: parseFloat(lng) },
     });
+    res.json({ success: true, message: "Location updated" });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: "Error" });
   }
 };
 
@@ -246,4 +162,5 @@ export {
   getRestaurantProfile,
   updateRestaurantProfile,
   listRestaurants,
+  updateRestaurantLocation,
 };
