@@ -83,7 +83,7 @@ const Dashboard = () => {
       <EarningsChart data={dailyChart || []} />
 
       {/* Monthly Summary */}
-      <div className=" from-yellow-50 to-white rounded-2xl p-4 border border-yellow-100">
+      <div className="bg-linear-to-b from-yellow-50 to-white rounded-2xl p-4 border border-yellow-100">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
           Earnings Summary
         </p>

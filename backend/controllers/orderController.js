@@ -92,8 +92,7 @@ const placeOrder = async (req, res) => {
       items,
       amount: finalAmount,
       address,
-      couponCode: couponCode || "",
-      status: "Food Processing",
+      couponCode: couponCode ? couponCode.toUpperCase() : "",
       payment: false,
       paymentMethod: "stripe",
       customerLocation: customerLocation || { lat: null, lng: null },
@@ -180,8 +179,7 @@ const placeOrderCOD = async (req, res) => {
       items,
       amount: finalAmount,
       address,
-      couponCode: couponCode || "",
-      status: "Food Processing",
+      couponCode: couponCode ? couponCode.toUpperCase() : "",
       payment: false,
       paymentMethod: "cod",
       customerLocation: customerLocation || { lat: null, lng: null },
@@ -196,8 +194,6 @@ const placeOrderCOD = async (req, res) => {
       cartData: {},
       cartRestaurantId: null,
     });
-    await triggerRiderAssignment(newOrder._id, customerLocation);
-
     res.json({
       success: true,
       message: "Order placed successfully! Pay on delivery.",
@@ -218,12 +214,8 @@ const verifyOrder = async (req, res) => {
       const order = await orderModel.findById(orderId);
 
       if (order?.couponCode === "FIRST15") {
-        await userModel.findByIdAndUpdate(order.userId, {
-          hasUsedFirstCoupon: true,
-        });
+        await userModel.findByIdAndUpdate(order.userId, { hasUsedFirstCoupon: true });
       }
-
-      await triggerRiderAssignment(orderId, order?.customerLocation);
       res.json({ success: true, message: "Paid" });
     } else {
       await orderModel.findByIdAndDelete(orderId);
@@ -283,19 +275,34 @@ const restaurantOrders = async (req, res) => {
   }
 };
 
+const RESTAURANT_TRANSITIONS = {
+  "Order Placed": ["Confirmed", "Rejected"],
+  "Confirmed": ["Preparing Food", "Rejected"],
+  "Preparing Food": ["Ready for Pickup"],
+};
+
+const CANCELLABLE_STATUSES = ["Order Placed", "Confirmed", "Preparing Food"];
+
 const updateRestaurantOrderStatus = async (req, res) => {
   try {
-    const order = await orderModel.findOne({
-      _id: req.body.orderId,
-      restaurantId: req.restaurantId,
-    });
+    const { orderId, status } = req.body;
+    const order = await orderModel.findOne({ _id: orderId, restaurantId: req.restaurantId });
     if (!order) return res.json({ success: false, message: "Order not found" });
-    order.status = req.body.status;
-    if (req.body.status === "Delivered") {
-      order.deliveredAt = new Date();
-      if (order.paymentMethod === "cod") order.payment = true;
+
+    const allowedNext = RESTAURANT_TRANSITIONS[order.status];
+    if (!allowedNext || !allowedNext.includes(status)) {
+      return res.json({
+        success: false,
+        message: `Cannot move from "${order.status}" to "${status}"`,
+      });
     }
+
+    order.status = status;
     await order.save();
+    if (status === "Ready for Pickup") {
+      await triggerRiderAssignment(order._id, order.customerLocation);
+    }
+
     res.json({ success: true, message: "Status Updated" });
   } catch (error) {
     console.error(error);
@@ -303,13 +310,29 @@ const updateRestaurantOrderStatus = async (req, res) => {
   }
 };
 
+const cancelOrder = async (req, res) => {
+  try {
+    const { orderId, userId } = req.body;
+    const order = await orderModel.findOne({ _id: orderId, userId });
+    if (!order) return res.json({ success: false, message: "Order not found" });
+
+    if (!CANCELLABLE_STATUSES.includes(order.status)) {
+      return res.json({
+        success: false,
+        message: "This order can no longer be cancelled",
+      });
+    }
+    order.status = "Cancelled";
+    order.cancelledAt = new Date();
+    await order.save();
+    res.json({ success: true, message: "Order cancelled" });
+  } catch (error) {
+    console.error("cancelOrder:", error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
 export {
-  placeOrder,
-  placeOrderCOD,
-  verifyOrder,
-  listOrders,
-  userOrders,
-  updateStatus,
-  restaurantOrders,
-  updateRestaurantOrderStatus,
+  placeOrder, placeOrderCOD, verifyOrder, listOrders, userOrders,
+  updateStatus, restaurantOrders, updateRestaurantOrderStatus, cancelOrder,
 };

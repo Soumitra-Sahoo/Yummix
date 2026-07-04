@@ -32,22 +32,16 @@ const acceptDelivery = async (req, res) => {
   try {
     const { orderId } = req.body;
     const assignment = await riderAssignmentModel.findOne({
-      orderId,
-      riderId: req.riderId,
-      status: "pending",
+      orderId, riderId: req.riderId, status: "pending",
     });
-    if (!assignment)
-      return res.json({
-        success: false,
-        message: "Assignment not found or expired",
-      });
+    if (!assignment) {
+      return res.json({ success: false, message: "Assignment not found or expired" });
+    }
 
     await riderAssignmentModel.findByIdAndUpdate(assignment._id, {
       status: "accepted",
       respondedAt: new Date(),
     });
-    await orderModel.findByIdAndUpdate(orderId, { status: "Preparing Food" });
-
     res.json({ success: true, message: "Delivery accepted" });
   } catch (error) {
     console.error("acceptDelivery:", error);
@@ -123,7 +117,7 @@ const updateDeliveryStatus = async (req, res) => {
       const custLat = order.customerLocation?.lat;
       const custLng = order.customerLocation?.lng;
 
-      let distanceKm = 5; // fallback
+      let distanceKm = 5; 
       if (restLat && restLng && custLat && custLng) {
         distanceKm = Math.max(
           haversineKm(restLat, restLng, custLat, custLng),

@@ -31,7 +31,7 @@ const RiderContextProvider = ({ children }) => {
       if (res.data.success) setRider(res.data.data);
       else logout();
     } catch (err) {
-      console.error("fetchProfile:", err);
+      
     }
   };
 
@@ -81,7 +81,7 @@ const RiderContextProvider = ({ children }) => {
             authHeader(),
           );
         } catch {
-          /* silent */
+          
         }
       },
       () => {
@@ -111,7 +111,7 @@ const RiderContextProvider = ({ children }) => {
         setPendingAssignment(null);
       }
     } catch {
-      /* silent */
+
     }
   };
 
@@ -124,7 +124,7 @@ const RiderContextProvider = ({ children }) => {
       );
       if (res.data.success) setCurrentOrder(res.data.data);
     } catch {
-      /* silent */
+      
     }
   };
 

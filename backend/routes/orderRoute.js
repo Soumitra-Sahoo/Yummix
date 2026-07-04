@@ -11,6 +11,7 @@ import {
   updateStatus,
   restaurantOrders,
   updateRestaurantOrderStatus,
+  cancelOrder
 } from "../controllers/orderController.js";
 
 const orderRouter = express.Router();
@@ -22,10 +23,7 @@ orderRouter.get("/list", adminAuth, listOrders);
 orderRouter.post("/userorders", authMiddleware, userOrders);
 orderRouter.post("/status", adminAuth, updateStatus);
 orderRouter.get("/restaurant-orders", restaurantAuth, restaurantOrders);
-orderRouter.post(
-  "/restaurant-status",
-  restaurantAuth,
-  updateRestaurantOrderStatus,
-);
+orderRouter.post("/restaurant-status", restaurantAuth,  updateRestaurantOrderStatus);
+orderRouter.post("/cancel", authMiddleware, cancelOrder);
 
 export default orderRouter;

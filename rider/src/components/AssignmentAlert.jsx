@@ -16,7 +16,6 @@ const AssignmentAlert = () => {
   const [timeLeft, setTimeLeft] = useState(60);
   const [responding, setResponding] = useState(false);
 
-  // Countdown timer
   useEffect(() => {
     if (!pendingAssignment) return;
     setTimeLeft(60);
@@ -59,26 +58,23 @@ const AssignmentAlert = () => {
         setPendingAssignment(null);
         if (action === "accept") await fetchCurrentOrder();
       } else {
-        toast.error(res.data.message);
+        toast.error(res.data.message || "Failed to respond to delivery");
       }
-    } catch {
-      toast.error("Failed to respond");
+    } catch (err) {
+      toast.error("Failed to respond. Please try again.");
     } finally {
       setResponding(false);
     }
   };
 
   return (
-    // Full-screen overlay
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden animate-[slideUp_0.3s_ease]">
-        {/* Header */}
         <div className="bg-brand px-5 pt-5 pb-4">
           <div className="flex items-center justify-between mb-1">
             <span className="text-dark font-bold text-lg">
               🛵 New Delivery!
             </span>
-            {/* Countdown ring */}
             <div className="flex items-center gap-1.5 bg-white/30 rounded-full px-3 py-1 animate-pulse">
               <Clock size={13} className="text-dark" />
               <span className="text-dark font-bold text-sm">{timeLeft}s</span>
@@ -88,7 +84,6 @@ const AssignmentAlert = () => {
         </div>
 
         <div className="p-5 space-y-4">
-          {/* Restaurant */}
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center shrink-0">
               <Package size={18} className="text-orange-500" />
@@ -106,7 +101,6 @@ const AssignmentAlert = () => {
             </div>
           </div>
 
-          {/* Deliver to */}
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
               <MapPin size={18} className="text-blue-500" />
@@ -122,7 +116,6 @@ const AssignmentAlert = () => {
             </div>
           </div>
 
-          {/* Order amount */}
           <div className="bg-gray-50 rounded-xl px-4 py-2.5 flex justify-between items-center">
             <span className="text-sm text-gray-500">Order Amount</span>
             <span className="text-sm font-bold text-dark">
@@ -130,7 +123,6 @@ const AssignmentAlert = () => {
             </span>
           </div>
 
-          {/* Timer bar */}
           <div className="w-full bg-gray-100 rounded-full h-1.5">
             <div
               className="bg-brand h-1.5 rounded-full transition-all duration-1000"
@@ -138,7 +130,6 @@ const AssignmentAlert = () => {
             />
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-3">
             <button
               onClick={() => respond("reject")}

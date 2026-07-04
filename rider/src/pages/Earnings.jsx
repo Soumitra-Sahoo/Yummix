@@ -103,7 +103,7 @@ const Earnings = () => {
       </div>
 
       {/* Payout Button — UI only */}
-      <div className="bg-gradient-to-br from-yellow-50 to-white rounded-2xl p-5 border border-yellow-100 text-center">
+      <div className="bg-linear-to-br from-yellow-50 to-white rounded-2xl p-5 border border-yellow-100 text-center">
         <p className="text-sm text-gray-500 mb-1">Available for withdrawal</p>
         <p className="text-3xl font-bold text-dark mb-4">
           ₹{stats?.lifetimeEarnings ?? 0}

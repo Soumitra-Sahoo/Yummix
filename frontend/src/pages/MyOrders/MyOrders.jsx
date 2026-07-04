@@ -4,11 +4,14 @@ import axios from "axios";
 import { StoreContext } from "../../Context/StoreContext";
 import { assets } from "../../assets/assets";
 import RatingModal from "../../components/RatingModal/RatingModal";
+import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 
 const STATUS_STEPS = [
-  "Food Processing",
+  "Order Placed",
+  "Confirmed",
   "Preparing Food",
-  "Waiting for Rider",
+  "Ready for Pickup",
   "Rider Assigned",
   "Picked Up",
   "Out for Delivery",
@@ -16,14 +19,20 @@ const STATUS_STEPS = [
 ];
 
 const STATUS_COLOR = {
-  "Food Processing": { color: "#d97706", bg: "#fef9c3", dot: "#f59e0b" },
+  "Order Placed": { color: "#d97706", bg: "#fef9c3", dot: "#f59e0b" },
+  Confirmed: { color: "#0369a1", bg: "#e0f2fe", dot: "#0ea5e9" },
   "Preparing Food": { color: "#ea580c", bg: "#ffedd5", dot: "#f97316" },
+  "Ready for Pickup": { color: "#7c3aed", bg: "#f5f3ff", dot: "#8b5cf6" },
   "Waiting for Rider": { color: "#6b7280", bg: "#f3f4f6", dot: "#9ca3af" },
   "Rider Assigned": { color: "#2563eb", bg: "#eff6ff", dot: "#3b82f6" },
   "Picked Up": { color: "#7c3aed", bg: "#f5f3ff", dot: "#8b5cf6" },
   "Out for Delivery": { color: "#0891b2", bg: "#ecfeff", dot: "#06b6d4" },
   Delivered: { color: "#16a34a", bg: "#dcfce7", dot: "#22c55e" },
+  Cancelled: { color: "#991b1b", bg: "#fee2e2", dot: "#ef4444" },
+  Rejected: { color: "#991b1b", bg: "#fee2e2", dot: "#ef4444" },
 };
+
+const CANCELLABLE_STATUSES = ["Order Placed", "Confirmed", "Preparing Food"];
 
 const MyOrders = () => {
   const [data, setData] = useState([]);
@@ -46,6 +55,54 @@ const MyOrders = () => {
       setLoading(false);
     }
   };
+
+  const cancelOrder = async (orderId) => {
+  const result = await Swal.fire({
+    title: "Cancel Order?",
+    text: "Are you sure you want to cancel this order?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#ef4444",
+    cancelButtonColor: "#6b7280",
+    confirmButtonText: "Yes, Cancel",
+    cancelButtonText: "Keep Order",
+    reverseButtons: true,
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    const res = await axios.post(
+      `${url}/api/order/cancel`,
+      { orderId },
+      { headers: { token } }
+    );
+
+    if (res.data.success) {
+      await Swal.fire({
+        title: "Cancelled!",
+        text: "Your order has been cancelled.",
+        icon: "success",
+        timer: 1800,
+        showConfirmButton: false,
+      });
+
+      fetchOrders();
+    } else {
+      Swal.fire({
+        title: "Unable to Cancel",
+        text: res.data.message,
+        icon: "error",
+      });
+    }
+  } catch {
+    Swal.fire({
+      title: "Something went wrong",
+      text: "Please try again.",
+      icon: "error",
+    });
+  }
+};
 
   useEffect(() => {
     if (token) fetchOrders();
@@ -100,7 +157,6 @@ const MyOrders = () => {
 
           return (
             <div key={index} className="order-card">
-              {/* ── Top Row ── */}
               <div className="order-card-left">
                 <div className="order-parcel-icon">
                   <img src={assets.parcel_icon} alt="order" />
@@ -121,7 +177,6 @@ const MyOrders = () => {
                       ₹{order.amount.toFixed(2)}
                     </span>
                     {" · "}
-                    {/* ✅ COD / Paid badge */}
                     {isCOD ? (
                       <span
                         className={`payment-pill ${order.payment ? "paid" : "cod-pending"}`}
@@ -160,6 +215,16 @@ const MyOrders = () => {
                   >
                     {isExpanded ? "Hide" : "Track"}
                   </button>
+
+                  {CANCELLABLE_STATUSES.includes(order.status) && (
+                    <button
+                      className="btn-cancel-order"
+                      onClick={() => cancelOrder(order._id)}
+                    >
+                      Cancel
+                    </button>
+                  )}
+
                   {isDelivered && (
                     <button
                       className="btn-rate"
@@ -202,24 +267,40 @@ const MyOrders = () => {
                   )}
 
                   {/* Status Timeline */}
-                  <div className="order-timeline">
-                    {STATUS_STEPS.map((step, i) => {
-                      const isDone = i <= stepIdx;
-                      const isCurrent = i === stepIdx;
-                      return (
-                        <div
-                          key={step}
-                          className={`timeline-step ${isDone ? "done" : ""} ${isCurrent ? "current" : ""}`}
-                        >
-                          <div className="timeline-dot">
-                            {isDone ? "✓" : ""}
+                  {order.status === "Cancelled" ||
+                  order.status === "Rejected" ? (
+                    <div
+                      className={`terminal-banner ${order.status.toLowerCase()}`}
+                    >
+                      {order.status === "Cancelled"
+                        ? "❌ You cancelled this order."
+                        : "❌ The restaurant was unable to accept this order."}
+                    </div>
+                  ) : (
+                    <div className="order-timeline">
+                      {STATUS_STEPS.map((step, i) => {
+                        const effectiveStatus =
+                          order.status === "Waiting for Rider"
+                            ? "Ready for Pickup"
+                            : order.status;
+                        const stepIdx = STATUS_STEPS.indexOf(effectiveStatus);
+                        const isDone = i <= stepIdx;
+                        const isCurrent = i === stepIdx;
+                        return (
+                          <div
+                            key={step}
+                            className={`timeline-step ${isDone ? "done" : ""} ${isCurrent ? "current" : ""}`}
+                          >
+                            <div className="timeline-dot">
+                              {isDone ? "✓" : ""}
+                            </div>
+                            <div className="timeline-line" />
+                            <span className="timeline-label">{step}</span>
                           </div>
-                          <div className="timeline-line" />
-                          <span className="timeline-label">{step}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

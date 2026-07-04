@@ -17,7 +17,7 @@ const useHistory = () => {
         );
         if (res.data.success) setOrders(res.data.data);
       } catch (err) {
-        console.error("useHistory:", err);
+        // Silently handle history fetch errors
       } finally {
         setLoading(false);
       }

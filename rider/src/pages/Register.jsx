@@ -86,8 +86,14 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!files.profileImage || !files.aadhaarImage || !files.licenseImage) {
-      return toast.error("All documents are required");
+    if (!files.profileImage) {
+      return toast.error("Profile photo is required");
+    }
+    if (!files.aadhaarImage) {
+      return toast.error("Aadhaar card document is required");
+    }
+    if (!files.licenseImage) {
+      return toast.error("Driving license document is required");
     }
     setLoading(true);
     try {
@@ -110,7 +116,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-white flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-linear-to-b from-yellow-50 to-white flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8">
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-yellow-50 rounded-2xl mb-2">
