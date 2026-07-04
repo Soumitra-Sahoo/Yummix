@@ -1,9 +1,5 @@
 {
   "version": 2,
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/server.js"
-    }
-  ]
+  "routes": [{ "src": "/api/(.*)", "dest": "/server.js" }],
+  "crons": [{ "path": "/api/cron/process-assignments", "schedule": "*/5 * * * *" }]
 }

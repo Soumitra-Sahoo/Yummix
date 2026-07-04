@@ -9,11 +9,11 @@ import {
   CartesianGrid,
 } from "recharts";
 
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white border border-gray-100 rounded-xl shadow-lg px-3 py-2 text-xs">
-      <p className="font-bold text-dark">{label}</p>
+      <p className="font-bold text-dark">Earnings</p>
       <p className="text-green-600">₹{payload[0]?.value} earned</p>
       <p className="text-gray-400">{payload[1]?.value} deliveries</p>
     </div>

@@ -2,11 +2,11 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import validator from "validator";
 import riderModel from "../models/riderModel.js";
+import { processQueuedOrders } from "../services/riderAssignmentService.js";
 
 const createRiderToken = (id) =>
   jwt.sign({ id, role: "rider" }, process.env.JWT_SECRET);
 
-// ── REGISTER ─────────────────────────────────────────────
 const registerRider = async (req, res) => {
   try {
     const { name, email, password, phone, vehicleType, vehicleNumber } = req.body;
@@ -31,7 +31,6 @@ const registerRider = async (req, res) => {
       return res.json({ success: false, message: "Phone already registered" });
     }
 
-    // Handle uploaded files (Cloudinary via multer)
     const profileImage    = req.files?.profileImage?.[0]?.path || "";
     const profilePublicId = req.files?.profileImage?.[0]?.filename || "";
     const aadhaarImage    = req.files?.aadhaarImage?.[0]?.path || "";
@@ -46,7 +45,7 @@ const registerRider = async (req, res) => {
       });
     }
 
-    const salt           = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const rider = await riderModel.create({
@@ -69,7 +68,6 @@ const registerRider = async (req, res) => {
   }
 };
 
-// ── LOGIN ─────────────────────────────────────────────────
 const loginRider = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -99,7 +97,6 @@ const loginRider = async (req, res) => {
   }
 };
 
-// ── GET PROFILE ───────────────────────────────────────────
 const getRiderProfile = async (req, res) => {
   try {
     const rider = await riderModel
@@ -113,7 +110,6 @@ const getRiderProfile = async (req, res) => {
   }
 };
 
-// ── UPDATE PROFILE ────────────────────────────────────────
 const updateRiderProfile = async (req, res) => {
   try {
     const { name, phone, vehicleType, vehicleNumber } = req.body;
@@ -129,7 +125,6 @@ const updateRiderProfile = async (req, res) => {
   }
 };
 
-// ── CHANGE PASSWORD ───────────────────────────────────────
 const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -157,17 +152,26 @@ const changePassword = async (req, res) => {
   }
 };
 
-// ── TOGGLE ONLINE STATUS ──────────────────────────────────
 const toggleOnlineStatus = async (req, res) => {
   try {
     const rider = await riderModel.findById(req.riderId);
     const newStatus = !rider.isOnline;
+
+    if (!newStatus && rider.currentOrderId) {
+      return res.json({
+        success: false,
+        message: "You have an active delivery — finish it before going offline",
+      });
+    }
 
     await riderModel.findByIdAndUpdate(req.riderId, {
       isOnline: newStatus,
       isAvailable: newStatus ? true : false,
     });
 
+    if (newStatus) {
+      processQueuedOrders().catch((e) => console.error("processQueuedOrders:", e));
+    }
     res.json({
       success: true,
       isOnline: newStatus,

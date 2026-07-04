@@ -4,24 +4,24 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { assets, url } from "../../assets/assets";
 
-const STATUS_OPTIONS = [
-  "Food Processing",
-  "Preparing Food",
-  "Waiting for Rider",
-  "Rider Assigned",
-  "Picked Up",
-  "Out for Delivery",
-  "Delivered",
-];
+const RESTAURANT_TRANSITIONS = {
+  "Order Placed": ["Order Placed", "Confirmed", "Rejected"],
+  Confirmed: ["Confirmed", "Preparing Food", "Rejected"],
+  "Preparing Food": ["Preparing Food", "Ready for Pickup"],
+};
 
 const STATUS_CLASS = {
-  "Food Processing": "processing",
+  "Order Placed": "processing",
+  Confirmed: "confirmed",
   "Preparing Food": "preparing",
+  "Ready for Pickup": "ready",
   "Waiting for Rider": "waiting",
   "Rider Assigned": "assigned",
   "Picked Up": "picked",
   "Out for Delivery": "delivery",
   Delivered: "delivered",
+  Cancelled: "cancelled",
+  Rejected: "rejected",
 };
 
 const Order = () => {
@@ -160,16 +160,20 @@ const Order = () => {
                   className={`status-badge ${STATUS_CLASS[order.status] || "processing"}`}
                 >
                   <span className="status-dot" />
-                  <select
-                    onChange={(e) => statusHandler(e, order._id)}
-                    value={order.status}
-                  >
-                    {STATUS_OPTIONS.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
+                  {RESTAURANT_TRANSITIONS[order.status] ? (
+                    <select
+                      onChange={(e) => statusHandler(e, order._id)}
+                      value={order.status}
+                    >
+                      {RESTAURANT_TRANSITIONS[order.status].map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="status-locked">{order.status}</span>
+                  )}
                 </div>
               </div>
             </div>

@@ -15,6 +15,7 @@ import ratingRouter from "./routes/ratingRoute.js";
 import riderRouter from "./routes/riderRoute.js";
 import riderOrderRouter from "./routes/riderOrderRoute.js";
 import riderDashboardRouter from "./routes/riderDashboardRoute.js";
+import cronRouter from "./routes/cronRoute.js";
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api/food", foodRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
+app.use("/api/cron", cronRouter);
 app.use("/api/restaurant", restaurantRouter);
 app.use("/api/restaurant", restaurantDashboardRoute);
 app.use("/api/restaurant-food", restaurantFoodRouter);

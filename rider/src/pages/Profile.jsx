@@ -104,10 +104,10 @@ const Profile = () => {
           confirmPassword: "",
         });
       } else {
-        toast.error(res.data.message);
+        toast.error(res.data.message || "Failed to change password");
       }
-    } catch {
-      toast.error("Failed");
+    } catch (err) {
+      toast.error("Failed to change password. Please try again.");
     } finally {
       setSaving(false);
     }

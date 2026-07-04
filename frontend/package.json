@@ -15,7 +15,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",
-    "react-toastify": "^10.0.4"
+    "react-toastify": "^10.0.4",
+    "sweetalert2": "^11.26.25"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useRider } from "../context/RiderContext.jsx";
 import CurrentOrderCard from "../components/CurrentOrderCard.jsx";
 import DeliveryMap from "../components/DeliveryMap.jsx";
-import { MapPin, Phone, Navigation } from "lucide-react";
+import { MapPin, Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const STATUS_STEPS = [
@@ -50,10 +50,10 @@ const Orders = () => {
         }
         await fetchCurrentOrder();
       } else {
-        toast.error(res.data.message);
+        toast.error(res.data.message || "Failed to update delivery status");
       }
-    } catch {
-      toast.error("Failed to update status");
+    } catch (err) {
+      toast.error("Failed to update status. Please try again.");
     } finally {
       setUpdating(false);
     }
@@ -82,7 +82,7 @@ const Orders = () => {
     </div>
     </div>
   );
-}
+  }
   const restaurant = currentOrder.restaurantId;
   const next = nextStatus();
 

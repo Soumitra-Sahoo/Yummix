@@ -14,7 +14,7 @@ const useDashboard = () => {
         const res = await axios.get(`${BASE_URL}/api/rider-dashboard`, authHeader());
         if (res.data.success) setData(res.data.data);
       } catch (err) {
-        console.error("useDashboard:", err);
+        // Silently handle dashboard fetch errors
       } finally {
         setLoading(false);
       }

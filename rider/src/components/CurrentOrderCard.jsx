@@ -34,7 +34,7 @@ const CurrentOrderCard = () => {
   return (
     <button
       onClick={() => navigate("/orders")}
-      className="w-full bg-gradient-to-br from-yellow-50 to-white rounded-2xl p-4 border border-yellow-200 shadow-sm text-left hover:shadow-md transition"
+      className="w-full bg-linear-to-br from-yellow-50 to-white rounded-2xl p-4 border border-yellow-200 shadow-sm text-left hover:shadow-md transition"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
