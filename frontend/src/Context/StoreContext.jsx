@@ -20,7 +20,7 @@ const haversineKm = (lat1, lng1, lat2, lng2) => {
 const RADIUS_KM = 10;
 
 const StoreContextProvider = ({ children }) => {
-  const url = import.meta.env.VITE_API_URL || "http://localhost:4000";
+  const url = "https://yummix-backend.vercel.app";
 
   const [food_list, setFoodList] = useState([]);
   const [cartItems, setCartItems] = useState({});
