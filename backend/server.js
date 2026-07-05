@@ -15,6 +15,7 @@ import ratingRouter from "./routes/ratingRoute.js";
 import riderRouter from "./routes/riderRoute.js";
 import riderOrderRouter from "./routes/riderOrderRoute.js";
 import riderDashboardRouter from "./routes/riderDashboardRoute.js";
+import feedbackRouter from "./routes/feedbackRoute.js"
 import cronRouter from "./routes/cronRoute.js";
 
 const app = express();
@@ -52,6 +53,7 @@ app.use("/api/rating", ratingRouter);
 app.use("/api/rider", riderRouter);
 app.use("/api/rider-order", riderOrderRouter);
 app.use("/api/rider-dashboard", riderDashboardRouter);
+app.use("/api/contact", feedbackRouter);
 
 app.get("/", (req, res) => res.send("Yummix API Working"));
 

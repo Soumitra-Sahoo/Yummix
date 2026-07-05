@@ -4,7 +4,6 @@ import { StoreContext } from "../../Context/StoreContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-// ✅ Issue 1 Fix: Dynamic delivery fee based on distance (haversine)
 const haversineKm = (lat1, lng1, lat2, lng2) => {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -22,7 +21,7 @@ const PER_KM_DELIVERY_RATE = 4;
 const FREE_KM_THRESHOLD = 2;
 
 const calcDeliveryFee = (userLocation, nearestRestaurant) => {
-  if (!userLocation?.lat || !nearestRestaurant?.location?.lat) {
+  if (  userLocation?.lat == null ||  nearestRestaurant?.location?.lat == null) {
     return BASE_DELIVERY_FEE;
   }
   const distKm = haversineKm(

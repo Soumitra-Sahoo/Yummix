@@ -18,30 +18,34 @@ const RiderContextProvider = ({ children }) => {
 
   const locationIntervalRef = useRef(null);
   const assignIntervalRef = useRef(null);
+  const pendingAssignmentIdRef = useRef(null);
 
   const authHeader = () => ({ headers: { token } });
 
   const fetchProfile = async () => {
     if (!token) return;
     try {
-      const res = await axios.get(
-        `${BASE_URL}/api/rider/profile`,
-        authHeader(),
-      );
-      if (res.data.success) setRider(res.data.data);
-      else logout();
-    } catch (err) {
-      
+      const res = await axios.get(`${BASE_URL}/api/rider/profile`, authHeader());
+      if (res.data.success) {
+        setRider(res.data.data);
+      } else {
+        logout();
+      }
+    } catch {
+      toast.error("Failed to load your profile. Please log in again.");
+    logout();
     }
   };
 
   const login = async (email, password) => {
     setLoading(true);
+
     try {
       const res = await axios.post(`${BASE_URL}/api/rider/login`, {
         email,
         password,
       });
+
       if (res.data.success) {
         const newToken = res.data.token;
         setToken(newToken);
@@ -65,6 +69,7 @@ const RiderContextProvider = ({ children }) => {
     setRider(null);
     setPendingAssignment(null);
     setCurrentOrder(null);
+    pendingAssignmentIdRef.current = null;
     localStorage.removeItem("riderToken");
     clearInterval(locationIntervalRef.current);
     clearInterval(assignIntervalRef.current);
@@ -72,21 +77,21 @@ const RiderContextProvider = ({ children }) => {
 
   const sendLocation = () => {
     if (!token || !rider?.isOnline) return;
+
     navigator.geolocation?.getCurrentPosition(
       async (pos) => {
         try {
           await axios.post(
             `${BASE_URL}/api/rider/update-location`,
-            { lat: pos.coords.latitude, lng: pos.coords.longitude },
-            authHeader(),
+            {
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude,
+            },
+            authHeader()
           );
-        } catch {
-          
-        }
+        } catch {}
       },
-      () => {
-        /* permission denied — silent */
-      },
+      () => {}
     );
   };
 
@@ -95,37 +100,41 @@ const RiderContextProvider = ({ children }) => {
     try {
       const res = await axios.get(
         `${BASE_URL}/api/rider-order/pending-assignment`,
-        authHeader(),
+        authHeader()
       );
       if (res.data.success && res.data.data) {
         const assignment = res.data.data;
-        if (!pendingAssignment || pendingAssignment._id !== assignment._id) {
+
+        if (pendingAssignmentIdRef.current !== assignment._id) {
+          pendingAssignmentIdRef.current = assignment._id;
           setPendingAssignment(assignment);
           navigator.vibrate?.([300, 100, 300]);
+
           toast.info("🛵 New delivery assigned!", {
             autoClose: false,
             toastId: "new-assignment",
           });
         }
       } else {
+        pendingAssignmentIdRef.current = null;
         setPendingAssignment(null);
       }
-    } catch {
-
-    }
+    } catch {}
   };
 
   const fetchCurrentOrder = async () => {
     if (!token) return;
+
     try {
       const res = await axios.get(
         `${BASE_URL}/api/rider-order/assigned`,
-        authHeader(),
+        authHeader()
       );
-      if (res.data.success) setCurrentOrder(res.data.data);
-    } catch {
-      
-    }
+
+      if (res.data.success) {
+        setCurrentOrder(res.data.data);
+      }
+    } catch {}
   };
 
   const toggleOnline = async () => {
@@ -133,11 +142,17 @@ const RiderContextProvider = ({ children }) => {
       const res = await axios.post(
         `${BASE_URL}/api/rider/toggle-online`,
         {},
-        authHeader(),
+        authHeader()
       );
+
       if (res.data.success) {
-        setRider((prev) => ({ ...prev, isOnline: res.data.isOnline }));
+        setRider((prev) => ({
+          ...prev,
+          isOnline: res.data.isOnline,
+        }));
+
         toast.success(res.data.message);
+
         if (res.data.isOnline) {
           sendLocation();
         }
@@ -153,8 +168,16 @@ const RiderContextProvider = ({ children }) => {
 
     if (token && rider?.isOnline) {
       sendLocation();
-      locationIntervalRef.current = setInterval(sendLocation, LOCATION_POLL_MS);
-      assignIntervalRef.current = setInterval(pollAssignment, ASSIGN_POLL_MS);
+
+      locationIntervalRef.current = setInterval(
+        sendLocation,
+        LOCATION_POLL_MS
+      );
+
+      assignIntervalRef.current = setInterval(
+        pollAssignment,
+        ASSIGN_POLL_MS
+      );
     }
 
     return () => {
@@ -189,7 +212,9 @@ const RiderContextProvider = ({ children }) => {
   };
 
   return (
-    <RiderContext.Provider value={value}>{children}</RiderContext.Provider>
+    <RiderContext.Provider value={value}>
+      {children}
+    </RiderContext.Provider>
   );
 };
 

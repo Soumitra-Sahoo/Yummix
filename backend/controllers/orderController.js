@@ -24,19 +24,28 @@ const haversineKm = (lat1, lng1, lat2, lng2) => {
 };
 
 const calcDeliveryFee = (customerLoc, restaurantLoc) => {
-  if (!customerLoc?.lat || !restaurantLoc?.lat) return BASE_DELIVERY;
+  if (
+    customerLoc?.lat == null ||
+    customerLoc?.lng == null ||
+    restaurantLoc?.lat == null ||
+    restaurantLoc?.lng == null
+  ) {
+    return BASE_DELIVERY;
+  }
   const dist = haversineKm(
     customerLoc.lat,
     customerLoc.lng,
     restaurantLoc.lat,
     restaurantLoc.lng,
   );
+
   const extraKm = Math.max(0, dist - FREE_KM);
+
   return Math.round(BASE_DELIVERY + extraKm * PER_KM_RATE);
 };
 
 const triggerRiderAssignment = async (orderId, customerLocation) => {
-  if (customerLocation?.lat && customerLocation?.lng) {
+   if (customerLocation?.lat != null &&    customerLocation?.lng != null  ){
     await assignRiderToOrder(
       orderId,
       customerLocation.lat,
@@ -50,7 +59,6 @@ const triggerRiderAssignment = async (orderId, customerLocation) => {
   }
 };
 
-// ── STRIPE ORDER ───────────
 const placeOrder = async (req, res) => {
   try {
     const { items, userId, address, couponCode, customerLocation } = req.body;

@@ -5,6 +5,39 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
 
+  const haversineKm = (lat1, lng1, lat2, lng2) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLng / 2) ** 2;
+
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const BASE_DELIVERY_FEE = 17;
+  const PER_KM_DELIVERY_RATE = 4;
+  const FREE_KM_THRESHOLD = 2;
+
+  const calcDeliveryFee = (userLocation, restaurant) => {
+    if (!userLocation?.lat || !restaurant?.location?.lat) {
+      return BASE_DELIVERY_FEE;
+    }
+    const distKm = haversineKm(
+      userLocation.lat,
+      userLocation.lng,
+      restaurant.location.lat,
+      restaurant.location.lng,
+    );
+    const extraKm = Math.max(0, distKm - FREE_KM_THRESHOLD);
+    return Math.round(BASE_DELIVERY_FEE + extraKm * PER_KM_DELIVERY_RATE);
+  };
+
+
 const PlaceOrder = () => {
   const [data, setData] = useState({
     firstName: "",
@@ -17,6 +50,7 @@ const PlaceOrder = () => {
     country: "",
     phone: "",
   });
+
   const [customerLocation, setCustomerLocation] = useState({
     lat: null,
     lng: null,
@@ -32,21 +66,34 @@ const PlaceOrder = () => {
     cartItems,
     url,
     discount,
+    setDiscount,
     couponCode,
+    setCouponCode,
     userLocation,
+    restaurants,
   } = useContext(StoreContext);
 
   const navigate = useNavigate();
   const subtotal = getTotalCartAmount();
+  const cartFoodId = Object.keys(cartItems).find((id) => cartItems[id] > 0);
+
+  const cartFood = food_list.find((f) => f._id === cartFoodId);
+
+  const cartRestaurant = restaurants.find(
+    (r) => r._id === cartFood?.restaurantId,
+  );
+
+  const deliveryFee =
+    subtotal === 0 ? 0 : calcDeliveryFee(customerLocation, cartRestaurant);
 
   const onChangeHandler = (e) =>
     setData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   useEffect(() => {
-    if (userLocation?.lat && !customerLocation.lat) {
-      setCustomerLocation(userLocation);
-    }
-  }, [userLocation]);
+  if (userLocation?.lat && !customerLocation.lat) {
+    setCustomerLocation(userLocation);
+  }
+}, [userLocation, customerLocation.lat]);
 
   const fetchLocation = () => {
     if (!navigator.geolocation) return toast.error("Geolocation not supported");
@@ -90,7 +137,7 @@ const PlaceOrder = () => {
     const orderData = {
       address: data,
       items: orderItems,
-      amount: subtotal - discount + 17,
+      amount: subtotal - discount + deliveryFee,
       couponCode,
       customerLocation,
     };
@@ -105,9 +152,11 @@ const PlaceOrder = () => {
         if (response.data.success) {
           toast.success(
             "🎉 Order placed! Pay ₹" +
-              (subtotal - discount + 17).toFixed(2) +
+              (subtotal - discount + deliveryFee).toFixed(2) +
               " on delivery.",
           );
+          setDiscount(0);
+          setCouponCode("");
           navigate("/myorders");
         } else {
           toast.error(response.data.message || "Something went wrong");
@@ -117,6 +166,8 @@ const PlaceOrder = () => {
           headers: { token },
         });
         if (response.data.success) {
+          setDiscount(0);
+          setCouponCode("");
           window.location.replace(response.data.session_url);
         } else {
           toast.error(response.data.message || "Something went wrong");
@@ -140,7 +191,6 @@ const PlaceOrder = () => {
 
   return (
     <form onSubmit={placeOrder} className="place-order">
-      {/* ── LEFT: Delivery Address ── */}
       <div className="place-order-left">
         <p className="title">Delivery Information</p>
 
@@ -150,7 +200,7 @@ const PlaceOrder = () => {
 
         <div className="multi-field">
           <input
-            type="text"
+            type="text" 
             name="firstName"
             onChange={onChangeHandler}
             value={data.firstName}
@@ -233,7 +283,6 @@ const PlaceOrder = () => {
           </p>
         )}
 
-        {/* ✅ Payment Method Selector */}
         <p className="title" style={{ marginTop: 24 }}>
           Payment Method
         </p>
@@ -296,7 +345,7 @@ const PlaceOrder = () => {
             <br />
             <div className="cart-total-details">
               <p>Delivery Fee</p>
-              <p>₹17+</p>
+              <p>₹{deliveryFee}</p>
             </div>
             {discount > 0 && (
               <>
@@ -310,11 +359,31 @@ const PlaceOrder = () => {
             <hr />
             <div className="cart-total-details">
               <b>Total</b>
-              <b>₹{(subtotal - discount + 17).toFixed(2)}+</b>
+              <b>₹{(subtotal - discount + deliveryFee).toFixed(2)}</b>
             </div>
-            <p style={{ fontSize: 11, color: "#9ca3af", marginTop: 6 }}>
-              * Final delivery fee calculated by distance
-            </p>
+            {cartRestaurant?.location?.lat && customerLocation?.lat && (
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "#9ca3af",
+                  marginTop: 6,
+                }}
+              >
+                Based on distance from {cartRestaurant.restaurantName}
+              </p>
+            )}
+
+            {!cartRestaurant?.location?.lat && (
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "#f59e0b",
+                  marginTop: 6,
+                }}
+              >
+                ⚠ Restaurant location not set — flat fee applied
+              </p>
+            )}
           </div>
         </div>
 

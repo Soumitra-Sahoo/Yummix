@@ -7,28 +7,79 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 const LoginPopup = ({ setShowLogin }) => {
-  const { setToken, url, loadCartData, fetchUserProfile } =
-    useContext(StoreContext);
+  const {
+    setToken,
+    url,
+    loadCartData,
+    fetchUserProfile,
+    cartItems,
+  } = useContext(StoreContext);
+
   const [currState, setCurrState] = useState("Sign Up");
-  const [data, setData] = useState({ name: "", email: "", password: "" });
+  const [data, setData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+
   const navigate = useNavigate();
 
   const onChangeHandler = (e) =>
-    setData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
 
   const onLogin = async (e) => {
     e.preventDefault();
-    const endpoint =
-      currState === "Login" ? "/api/user/login" : "/api/user/register";
-    const response = await axios.post(url + endpoint, data);
-    if (response.data.success) {
-      setToken(response.data.token);
-      localStorage.setItem("token", response.data.token);
-      await loadCartData(response.data.token);
-      await fetchUserProfile(response.data.token);
-      setShowLogin(false);
-    } else {
-      toast.error(response.data.message);
+
+    try {
+      const endpoint =
+        currState === "Login"
+          ? "/api/user/login"
+          : "/api/user/register";
+
+      const response = await axios.post(url + endpoint, data);
+
+      if (response.data.success) {
+        const newToken = response.data.token;
+
+        setToken(newToken);
+        localStorage.setItem("token", newToken);
+
+        // Merge guest cart into user's server cart
+        const guestEntries = Object.entries(cartItems).filter(
+          ([, qty]) => qty > 0
+        );
+
+        for (const [itemId, qty] of guestEntries) {
+          for (let i = 0; i < qty; i++) {
+            await axios.post(
+              `${url}/api/cart/add`,
+              { itemId },
+              {
+                headers: { token: newToken },
+              }
+            );
+          }
+        }
+
+        await loadCartData(newToken);
+        await fetchUserProfile(newToken);
+
+        toast.success(
+          currState === "Login"
+            ? "Logged in successfully!"
+            : "Account created successfully!"
+        );
+
+        setShowLogin(false);
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong. Please try again.");
     }
   };
 
@@ -42,6 +93,7 @@ const LoginPopup = ({ setShowLogin }) => {
       <form onSubmit={onLogin} className="login-popup-container">
         <div className="login-popup-title">
           <h2>{currState}</h2>
+
           <img
             onClick={() => setShowLogin(false)}
             src={assets.cross_icon}
@@ -52,28 +104,30 @@ const LoginPopup = ({ setShowLogin }) => {
         <div className="login-popup-inputs">
           {currState === "Sign Up" && (
             <input
-              name="name"
-              onChange={onChangeHandler}
-              value={data.name}
               type="text"
+              name="name"
               placeholder="Your name"
+              value={data.name}
+              onChange={onChangeHandler}
               required
             />
           )}
+
           <input
-            name="email"
-            onChange={onChangeHandler}
-            value={data.email}
             type="email"
+            name="email"
             placeholder="Your email"
+            value={data.email}
+            onChange={onChangeHandler}
             required
           />
+
           <input
-            name="password"
-            onChange={onChangeHandler}
-            value={data.password}
             type="password"
+            name="password"
             placeholder="Password"
+            value={data.password}
+            onChange={onChangeHandler}
             required
           />
         </div>
@@ -84,23 +138,33 @@ const LoginPopup = ({ setShowLogin }) => {
 
         <div className="login-popup-condition">
           <input type="checkbox" required />
+
           <p>
             By continuing, I agree to the{" "}
-            <span onClick={() => goToPage("/terms")}>Terms of Use</span>
+            <span onClick={() => goToPage("/terms")}>
+              Terms of Use
+            </span>
             {" & "}
-            <span onClick={() => goToPage("/privacy")}>Privacy Policy</span>.
+            <span onClick={() => goToPage("/privacy")}>
+              Privacy Policy
+            </span>
+            .
           </p>
         </div>
 
         {currState === "Login" ? (
           <p>
             Create a new account?{" "}
-            <span onClick={() => setCurrState("Sign Up")}>Click here</span>
+            <span onClick={() => setCurrState("Sign Up")}>
+              Click here
+            </span>
           </p>
         ) : (
           <p>
             Already have an account?{" "}
-            <span onClick={() => setCurrState("Login")}>Login here</span>
+            <span onClick={() => setCurrState("Login")}>
+              Login here
+            </span>
           </p>
         )}
       </form>

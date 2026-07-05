@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useRider } from "../context/RiderContext.jsx";
 import CurrentOrderCard from "../components/CurrentOrderCard.jsx";
 import DeliveryMap from "../components/DeliveryMap.jsx";
-import { MapPin, Phone } from "lucide-react";
+import { MapPin, Phone, Navigation } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const STATUS_STEPS = [
@@ -224,7 +224,6 @@ const Orders = () => {
           })}
         </div>
       </div>
-      {/* Open in Maps */}
       {currentOrder.customerLocation?.lat && (
         <a
           href={`https://www.google.com/maps/dir/?api=1&destination=${currentOrder.customerLocation.lat},${currentOrder.customerLocation.lng}`}

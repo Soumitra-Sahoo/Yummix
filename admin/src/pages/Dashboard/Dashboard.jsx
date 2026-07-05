@@ -33,8 +33,6 @@ const Dashboard = () => {
           },
         },
       );
-      console.log(response.data);
-
       if (response.data.success) {
         setDashboardData(response.data.data);
       }

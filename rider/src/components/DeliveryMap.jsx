@@ -46,8 +46,11 @@ const DeliveryMap = ({
   customerLat,
   customerLng,
 }) => {
-  const hasRestaurant = restaurantLat && restaurantLng;
-  const hasCustomer = customerLat && customerLng;
+  const hasRestaurant =
+  restaurantLat != null && restaurantLng != null;
+
+const hasCustomer =
+  customerLat != null && customerLng != null;
 
   if (!hasRestaurant && !hasCustomer) {
     return (

@@ -1,45 +1,64 @@
-import React, { useState } from "react";
+import React from "react";
 import "./Partner.css";
-import { toast } from "react-toastify";
-
-const INITIAL = { name: "", restaurant: "", phone: "", city: "", message: "" };
 
 const Partner = () => {
-  const [form, setForm] = useState(INITIAL);
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    toast.success("Request Submitted! We will contact you soon.");
-    setForm(INITIAL);
-  };
-
   return (
     <div className="partner">
       <div className="partner-hero">
         <h1>Partner With Yummix</h1>
-        <p>Grow your business by reaching thousands of customers.</p>
+        <p>
+          Join thousands of restaurants growing their business with Yummix.
+        </p>
       </div>
+
       <div className="partner-section">
         <h2>Why Partner With Us?</h2>
+
         <div className="partner-features">
-          <div className="feature-card"><h3>📈 Increase Sales</h3><p>Reach more customers and grow your revenue.</p></div>
-          <div className="feature-card"><h3>🚀 Fast Onboarding</h3><p>Get started quickly with our simple process.</p></div>
-          <div className="feature-card"><h3>📦 Reliable Delivery</h3><p>We handle logistics while you focus on food.</p></div>
-          <div className="feature-card"><h3>💡 Marketing Support</h3><p>Promote your restaurant with our platform.</p></div>
+          <div className="feature-card">
+            <h3>📈 Increase Sales</h3>
+            <p>Reach more customers and grow your restaurant's revenue.</p>
+          </div>
+
+          <div className="feature-card">
+            <h3>🚀 Fast Onboarding</h3>
+            <p>Create your restaurant account and start selling quickly.</p>
+          </div>
+
+          <div className="feature-card">
+            <h3>🛵 Reliable Delivery</h3>
+            <p>Our rider network delivers orders efficiently to customers.</p>
+          </div>
+
+          <div className="feature-card">
+            <h3>📊 Powerful Dashboard</h3>
+            <p>
+              Manage menu, orders, analytics, coupons and much more from one
+              place.
+            </p>
+          </div>
         </div>
       </div>
-      <div className="partner-form">
-        <h2>Join Us Today</h2>
-        <form onSubmit={handleSubmit}>
-          <input type="text"  name="name"       placeholder="Your Name"           value={form.name}       onChange={handleChange} required />
-          <input type="text"  name="restaurant" placeholder="Restaurant Name"     value={form.restaurant} onChange={handleChange} required />
-          <input type="tel"   name="phone"      placeholder="Phone Number"        value={form.phone}      onChange={handleChange} required />
-          <input type="text"  name="city"       placeholder="City"                value={form.city}       onChange={handleChange} required />
-          <textarea           name="message"    placeholder="Tell us about your business..." value={form.message} onChange={handleChange} />
-          <button type="submit">Submit Request</button>
-        </form>
+
+      <div className="partner-cta">
+        <h2>Ready to Join Yummix?</h2>
+
+        <p>
+          Register your restaurant, manage your menu, receive orders and track
+          your business through the Yummix Restaurant Portal.
+        </p>
+
+        <a
+          href="https://yummix-admin.vercel.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="partner-btn"
+        >
+          Register Your Restaurant →
+        </a>
       </div>
     </div>
   );
 };
+
 export default Partner;
