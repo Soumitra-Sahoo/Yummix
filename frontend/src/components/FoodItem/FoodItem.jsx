@@ -42,8 +42,6 @@ const FoodItem = ({
     <div className="food-item">
       <div className="food-item-img-container">
         <img className="food-item-image" src={imageUrl} alt={name} />
-
-        {/* Tags — top left */}
         {tags && tags.length > 0 && (
           <div className="food-item-tags">
             {tags.slice(0, 2).map((tag) => (
@@ -60,8 +58,6 @@ const FoodItem = ({
             ))}
           </div>
         )}
-
-        {/* Add / counter — bottom right */}
         {!cartItems[id] ? (
           <img
             className="add"
@@ -87,15 +83,10 @@ const FoodItem = ({
       </div>
 
       <div className="food-item-info">
-        {/* Name */}
         <h3 className="food-item-name">{name}</h3>
-
-        {/* ✅ Real star rating replacing static image */}
         <div className="food-item-rating-row">
           <StarRating rating={avgRating} count={ratingCount} size="sm" />
         </div>
-
-        {/* Meta: prep time + spice */}
         {(prepTime || spice) && (
           <div className="food-item-meta">
             {prepTime && (

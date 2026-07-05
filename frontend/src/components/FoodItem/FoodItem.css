@@ -1,4 +1,3 @@
-/* ── FOOD ITEM CARD ──────────────────────────────────── */
 .food-item {
   width: 100%;
   border-radius: 18px;
@@ -33,7 +32,6 @@
 }
 .food-item:hover .food-item-image { transform: scale(1.04); }
 
-/* Tags overlay — top left */
 .food-item-tags {
   position: absolute;
   top: 10px;
@@ -108,7 +106,6 @@
 /* Info section */
 .food-item-info { padding: 14px 16px 16px; }
 
-/* ✅ fixed: renamed from .food-item-name-rating to .food-item-name — matches JSX h3 */
 .food-item-name {
   font-size: 16px;
   font-weight: 700;
@@ -121,7 +118,6 @@
   margin-bottom: 8px;
 }
 
-/* Meta chips */
 .food-item-meta {
   display: flex;
   flex-wrap: wrap;
@@ -149,6 +145,7 @@
   font-size: 12.5px;
   line-height: 1.5;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;

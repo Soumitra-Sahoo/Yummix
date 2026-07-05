@@ -2,7 +2,6 @@
   padding: 40px 8%;
 }
 
-/* HERO */
 .delivery-hero {
   text-align: center;
   margin-bottom: 40px;
@@ -17,7 +16,6 @@
   color: #555;
 }
 
-/* SECTION */
 .delivery-section {
   margin: 30px 0;
 }
@@ -26,7 +24,6 @@
   margin-bottom: 10px;
 }
 
-/* STEPS */
 .steps {
   display: flex;
   gap: 20px;
@@ -41,7 +38,6 @@
   text-align: center;
 }
 
-/* FEATURES */
 .features-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -61,26 +57,67 @@
   transform: translateY(-5px);
 }
 
-/* CTA */
+.delivery-partner {
+  margin-top: 50px;
+  background: #fff5f5;
+  border-radius: 16px;
+  padding: 50px 30px;
+  text-align: center;
+}
+
+.delivery-partner h2 {
+  font-size: 32px;
+  color: #222;
+  margin-bottom: 16px;
+}
+
+.delivery-partner p {
+  max-width: 700px;
+  margin: 0 auto 30px;
+  color: #666;
+  line-height: 1.8;
+  font-size: 16px;
+}
+
+.delivery-btn {
+  display: inline-block;
+  text-decoration: none;
+  background: #ff4d4d;
+  color: white;
+  padding: 14px 36px;
+  border-radius: 40px;
+  font-size: 17px;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.delivery-btn:hover {
+  background: #e63939;
+  transform: translateY(-3px);
+}
+
 .delivery-cta {
   text-align: center;
-  margin-top: 40px;
+  margin-top: 50px;
 }
 
 .delivery-cta h2 {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .delivery-cta button {
   background: #ff4d4d;
   color: white;
   border: none;
-  padding: 12px 25px;
+  padding: 14px 30px;
   border-radius: 30px;
   cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
   transition: 0.3s;
 }
 
 .delivery-cta button:hover {
-  transform: scale(1.05);
+  background: #e63939;
+  transform: translateY(-3px);
 }

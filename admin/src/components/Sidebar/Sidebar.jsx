@@ -23,6 +23,10 @@ const Sidebar = () => {
           <img src={assets.dashboard_icon} alt="" />
           <p>Dashboard</p>
         </NavLink>
+        <NavLink to="/location" className="sidebar-option">
+          <img src={assets.location_icon} alt="" />
+          <p>Location</p>
+        </NavLink>
       </div>
     </div>
   );
