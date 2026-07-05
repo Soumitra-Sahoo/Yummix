@@ -13,3 +13,18 @@
     gap: 30px;
     row-gap: 50px;
 }
+
+.food-display-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #6b7280;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.food-display-message span {
+    display: block;
+    margin-top: 4px;
+    font-size: 14px;
+    font-weight: 500;
+}

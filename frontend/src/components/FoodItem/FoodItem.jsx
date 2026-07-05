@@ -102,9 +102,7 @@ const FoodItem = ({
             )}
           </div>
         )}
-
         <p className="food-item-desc">{desc}</p>
-
         {restaurantName && (
           <p className="food-restaurant-name">🍴 {restaurantName}</p>
         )}

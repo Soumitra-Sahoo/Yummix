@@ -31,12 +31,15 @@ const FoodDisplay = ({ category, searchQuery, foods, restaurantName }) => {
     })
     .sort((a, b) => b.priority - a.priority);
 
-  // Related menu/category matches
   const relatedItems = !query
     ? []
     : displayFoods.filter((item) =>
         item.category.toLowerCase().includes(query),
       );
+
+  const fallbackItems = displayFoods.filter(
+    (item) => category === "All" || item.category === category,
+  );
 
   const renderFoodItem = (item) => {
     const restaurant = restaurants.find((r) => r._id === item.restaurantId);
@@ -76,27 +79,12 @@ const FoodDisplay = ({ category, searchQuery, foods, restaurantName }) => {
           relatedItems.map(renderFoodItem)
         ) : (
           <>
-            <div
-              style={{
-                width: "100%",
-                textAlign: "center",
-                marginBottom: "20px",
-                color: "#6b7280",
-                fontWeight: 600,
-              }}
-            >
+            <div className="food-display-message">
               No items found. Try a different item.
               <br />
-              <span style={{ fontSize: "14px" }}>
-                Showing all menu items instead.
-              </span>
+              <span>Showing all menu items instead.</span>
             </div>
-
-            {displayFoods
-              .filter(
-                (item) => category === "All" || item.category === category,
-              )
-              .map(renderFoodItem)}
+            {fallbackItems.map(renderFoodItem)}
           </>
         )}
       </div>
