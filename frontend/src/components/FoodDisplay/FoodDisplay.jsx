@@ -37,9 +37,7 @@ const FoodDisplay = ({ category, searchQuery, foods, restaurantName }) => {
         item.category.toLowerCase().includes(query),
       );
 
-  const fallbackItems = displayFoods.filter(
-    (item) => category === "All" || item.category === category,
-  );
+  const fallbackItems = food_list;
 
   const renderFoodItem = (item) => {
     const restaurant = restaurants.find((r) => r._id === item.restaurantId);
