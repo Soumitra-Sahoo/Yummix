@@ -25,7 +25,7 @@ app.use(
     origin: [
       "https://yummix-frontend.vercel.app",
       "https://yummix-admin.vercel.app",
-      "https://yummix-rider.vercel.app",
+      "https://rider-eta-rust.vercel.app",
       "http://localhost:5173",
       "http://localhost:5174",
       "http://localhost:5175",
