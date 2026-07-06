@@ -252,12 +252,15 @@ const MyOrders = () => {
                         longer.
                       </div>
                     )}
-                  {isCOD && !order.payment && (
-                    <div className="cod-banner">
-                      💵 Please keep <strong>₹{order.amount.toFixed(2)}</strong>{" "}
-                      ready to pay the delivery partner in cash.
-                    </div>
-                  )}
+                  {isCOD &&
+                    !order.payment &&
+                    !["Cancelled", "Rejected"].includes(order.status) && (
+                      <div className="cod-banner">
+                        💵 Please keep{" "}
+                        <strong>₹{order.amount.toFixed(2)}</strong> ready to pay
+                        the delivery partner in cash.
+                      </div>
+                    )}
 
                   {/* Rider Info Card */}
                   {rider && (
@@ -286,11 +289,21 @@ const MyOrders = () => {
                     </div>
                   ) : order.status === "Cancelled" ? (
                     <div className="terminal-banner cancelled">
-                      {order.cancelledBy === "system" && (
+                      {order.cancelledBy === "system" ? (
                         <>
-                          We couldn't find a delivery partner for this order.
+                          We couldn't find a delivery partner.
                           <br />
                           Your order has been cancelled.
+                          <br />
+                        </>
+                      ) : order.cancelledBy === "customer" ? (
+                        <>
+                          You cancelled this order.
+                          <br />
+                        </>
+                      ) : (
+                        <>
+                          This order has been cancelled.
                           <br />
                         </>
                       )}
