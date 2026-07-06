@@ -109,8 +109,13 @@ const MyOrders = () => {
   };
 
   useEffect(() => {
-    if (token) fetchOrders();
-  }, [token]);
+  if (!token) return;
+  fetchOrders();
+  const interval = setInterval(() => {
+    fetchOrders();
+  }, 5000); 
+  return () => clearInterval(interval);
+}, [token]);
 
   if (loading) {
     return (
