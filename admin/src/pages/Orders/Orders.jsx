@@ -123,7 +123,6 @@ const Order = () => {
                     <p>📞 {order.address?.phone}</p>
                   </div>
 
-                  {/* ✅ Payment method tag */}
                   <div className="order-tags">
                     {isCOD ? (
                       <span
@@ -134,11 +133,14 @@ const Order = () => {
                     ) : (
                       <span className="tag tag-paid">💳 Paid Online</span>
                     )}
-
-                    {/* Rider tag */}
                     {order.riderId && (
                       <span className="tag tag-rider">
                         🛵 {order.riderId?.name || "Rider Assigned"}
+                      </span>
+                    )}
+                    {order.riderAssignmentFailed && (
+                      <span className="tag tag-alert">
+                        ⚠️ No rider found after 5 tries
                       </span>
                     )}
                   </div>
