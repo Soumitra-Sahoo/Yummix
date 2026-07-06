@@ -10,7 +10,7 @@ const CURRENCY = "inr";
 const BASE_DELIVERY = 17;
 const PER_KM_RATE = 4;
 const FREE_KM = 2;
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://yummix-frontend.vercel.app";
 
 const haversineKm = (lat1, lng1, lat2, lng2) => {
   const R = 6371;
