@@ -349,6 +349,22 @@
   font-weight: 700;
 }
 
+.payment-pill.refunded {
+   background: #ede9fe;
+    color: #6d28d9; 
+  }
+
+.assignment-failed-banner {
+  background: #fffbeb;
+  border: 1.5px solid #fde68a;
+  color: #92400e;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
 @media (max-width: 700px) {
   .order-card-left {
     padding: 16px 16px 0;

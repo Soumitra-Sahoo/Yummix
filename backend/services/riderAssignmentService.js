@@ -1,10 +1,12 @@
 import riderModel from "../models/riderModel.js";
 import orderModel from "../models/orderModel.js";
 import riderAssignmentModel from "../models/riderAssignmentModel.js";
+import { issueRefundIfNeeded } from "./refundService.js";
 
 const ASSIGNMENT_TIMEOUT_MS = 60 * 1000;
+const MAX_ASSIGNMENT_RETRIES = 5;
 
-export const haversineKm = (lat1, lng1, lat2, lng2) => {
+ const haversineKm = (lat1, lng1, lat2, lng2) => {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLng = ((lng2 - lng1) * Math.PI) / 180;
@@ -16,7 +18,7 @@ export const haversineKm = (lat1, lng1, lat2, lng2) => {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-export const findNearestRider = async (orderLat, orderLng, excludeRiderIds = []) => {
+const findNearestRider = async (orderLat, orderLng, excludeRiderIds = []) => {
   const riders = await riderModel.find({
     isOnline: true,
     isAvailable: true,
@@ -35,54 +37,54 @@ export const findNearestRider = async (orderLat, orderLng, excludeRiderIds = [])
   return withDistance[0];
 };
 
-export const assignRiderToOrder = async (orderId, orderLat, orderLng) => {
+const assignRiderToOrder = async (orderId, orderLat, orderLng) => {
   try {
     const order = await orderModel.findById(orderId);
     if (!order) return;
 
+    if ((order.assignmentTries || 0) >= MAX_ASSIGNMENT_RETRIES) {
+      
+      order.riderAssignmentFailed = true;
+      order.isQueued = false;
+      order.status = "Cancelled";
+      order.cancelledAt = new Date();
+      order.cancelledBy = "system";
+      const refundResult = await issueRefundIfNeeded(order);
+      if (!refundResult.success) order.refundFailed = true;
+      await order.save();
+      console.log(`[Assignment] Order ${orderId} auto-cancelled — no riders found after ${MAX_ASSIGNMENT_RETRIES} attempts`);
+      return;
+    }
+
+    const nextTries = (order.assignmentTries || 0) + 1;
     const previousAssignments = await riderAssignmentModel.find({
-      orderId,
-      status: { $in: ["rejected", "timeout"] },
+      orderId, status: { $in: ["rejected", "timeout"] },
     });
     const excludeIds = previousAssignments.map((a) => a.riderId);
-
     const result = await findNearestRider(orderLat, orderLng, excludeIds);
 
     if (!result) {
       await orderModel.findByIdAndUpdate(orderId, {
         isQueued: true,
         status: "Waiting for Rider",
+        assignmentTries: nextTries,
       });
-      console.log(`[Assignment] Order ${orderId} queued — no riders available`);
       return;
     }
-
     const { rider } = result;
     const now = new Date();
     const timeoutAt = new Date(now.getTime() + ASSIGNMENT_TIMEOUT_MS);
-
-    await riderAssignmentModel.create({
-      orderId, riderId: rider._id, status: "pending",
-      assignedAt: now, timeoutAt,
-    });
-
-    await riderModel.findByIdAndUpdate(rider._id, {
-      isAvailable: false,
-      currentOrderId: orderId,
-    });
-
+    await riderAssignmentModel.create({ orderId, riderId: rider._id, status: "pending", assignedAt: now, timeoutAt });
+    await riderModel.findByIdAndUpdate(rider._id, { isAvailable: false, currentOrderId: orderId });
     await orderModel.findByIdAndUpdate(orderId, {
-      riderId: rider._id,
-      status: "Rider Assigned",
-      isQueued: false,
-      assignmentTries: (order.assignmentTries || 0) + 1,
+      riderId: rider._id, status: "Rider Assigned", isQueued: false, assignmentTries: nextTries,
     });
   } catch (error) {
     console.error("[assignRiderToOrder]", error);
   }
 };
 
-export const processExpiredAssignments = async () => {
+const processExpiredAssignments = async () => {
   const now = new Date();
   const expired = await riderAssignmentModel.find({
     status: "pending",
@@ -107,12 +109,9 @@ export const processExpiredAssignments = async () => {
   return expired.length;
 };
 
-export const processQueuedOrders = async () => {
+const processQueuedOrders = async () => {
   try {
-    const queuedOrders = await orderModel
-      .find({ status: "Waiting for Rider" })
-      .sort({ date: 1 });
-
+    const queuedOrders = await orderModel.find({ status: "Waiting for Rider" }).sort({ date: 1 });
     for (const order of queuedOrders) {
       if (order.customerLocation?.lat != null && order.customerLocation?.lng != null) {
         await assignRiderToOrder(order._id, order.customerLocation.lat, order.customerLocation.lng);
@@ -121,4 +120,13 @@ export const processQueuedOrders = async () => {
   } catch (error) {
     console.error("[processQueuedOrders]", error);
   }
+};
+
+export {
+  MAX_ASSIGNMENT_RETRIES,
+  haversineKm,
+  findNearestRider,
+  assignRiderToOrder,
+  processExpiredAssignments,
+  processQueuedOrders,
 };

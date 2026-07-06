@@ -34,6 +34,10 @@ const STATUS_COLOR = {
 
 const CANCELLABLE_STATUSES = ["Order Placed", "Confirmed", "Preparing Food"];
 
+const canCancel = (order) =>
+  CANCELLABLE_STATUSES.includes(order.status) ||
+  (order.status === "Waiting for Rider" && order.riderAssignmentFailed);
+
 const MyOrders = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,52 +61,52 @@ const MyOrders = () => {
   };
 
   const cancelOrder = async (orderId) => {
-  const result = await Swal.fire({
-    title: "Cancel Order?",
-    text: "Are you sure you want to cancel this order?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#ef4444",
-    cancelButtonColor: "#6b7280",
-    confirmButtonText: "Yes, Cancel",
-    cancelButtonText: "Keep Order",
-    reverseButtons: true,
-  });
+    const result = await Swal.fire({
+      title: "Cancel Order?",
+      text: "Are you sure you want to cancel this order?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, Cancel",
+      cancelButtonText: "Keep Order",
+      reverseButtons: true,
+    });
 
-  if (!result.isConfirmed) return;
+    if (!result.isConfirmed) return;
 
-  try {
-    const res = await axios.post(
-      `${url}/api/order/cancel`,
-      { orderId },
-      { headers: { token } }
-    );
+    try {
+      const res = await axios.post(
+        `${url}/api/order/cancel`,
+        { orderId },
+        { headers: { token } },
+      );
 
-    if (res.data.success) {
-      await Swal.fire({
-        title: "Cancelled!",
-        text: "Your order has been cancelled.",
-        icon: "success",
-        timer: 1800,
-        showConfirmButton: false,
-      });
+      if (res.data.success) {
+        await Swal.fire({
+          title: "Cancelled!",
+          text: "Your order has been cancelled.",
+          icon: "success",
+          timer: 1800,
+          showConfirmButton: false,
+        });
 
-      fetchOrders();
-    } else {
+        fetchOrders();
+      } else {
+        Swal.fire({
+          title: "Unable to Cancel",
+          text: res.data.message,
+          icon: "error",
+        });
+      }
+    } catch {
       Swal.fire({
-        title: "Unable to Cancel",
-        text: res.data.message,
+        title: "Something went wrong",
+        text: "Please try again.",
         icon: "error",
       });
     }
-  } catch {
-    Swal.fire({
-      title: "Something went wrong",
-      text: "Please try again.",
-      icon: "error",
-    });
-  }
-};
+  };
 
   useEffect(() => {
     if (token) fetchOrders();
@@ -177,7 +181,9 @@ const MyOrders = () => {
                       ₹{order.amount.toFixed(2)}
                     </span>
                     {" · "}
-                    {isCOD ? (
+                    {order.refunded ? (
+                      <span className="payment-pill refunded">💸 Refunded</span>
+                    ) : isCOD ? (
                       <span
                         className={`payment-pill ${order.payment ? "paid" : "cod-pending"}`}
                       >
@@ -216,7 +222,7 @@ const MyOrders = () => {
                     {isExpanded ? "Hide" : "Track"}
                   </button>
 
-                  {CANCELLABLE_STATUSES.includes(order.status) && (
+                  {canCancel(order) && (
                     <button
                       className="btn-cancel-order"
                       onClick={() => cancelOrder(order._id)}
@@ -238,6 +244,14 @@ const MyOrders = () => {
 
               {isExpanded && (
                 <div className="order-expanded">
+                  {order.riderAssignmentFailed &&
+                    order.status === "Waiting for Rider" && (
+                      <div className="assignment-failed-banner">
+                        ⚠️ We're having trouble finding a rider for this order.
+                        You can cancel for a full refund, or wait a little
+                        longer.
+                      </div>
+                    )}
                   {isCOD && !order.payment && (
                     <div className="cod-banner">
                       💵 Please keep <strong>₹{order.amount.toFixed(2)}</strong>{" "}
@@ -266,15 +280,36 @@ const MyOrders = () => {
                     </div>
                   )}
 
-                  {/* Status Timeline */}
-                  {order.status === "Cancelled" ||
-                  order.status === "Rejected" ? (
-                    <div
-                      className={`terminal-banner ${order.status.toLowerCase()}`}
-                    >
-                      {order.status === "Cancelled"
-                        ? "❌ You cancelled this order."
-                        : "❌ The restaurant was unable to accept this order."}
+                  {order.status === "Waiting for Rider" ? (
+                    <div className="searching-banner">
+                      🔍 Searching for a delivery partner...
+                    </div>
+                  ) : order.status === "Cancelled" ? (
+                    <div className="terminal-banner cancelled">
+                      {order.cancelledBy === "system" && (
+                        <>
+                          We couldn't find a delivery partner for this order.
+                          <br />
+                          Your order has been cancelled.
+                          <br />
+                        </>
+                      )}
+
+                      {order.refunded
+                        ? "Your refund has been initiated successfully. The amount will be credited according to your bank or payment provider's processing time."
+                        : order.paymentMethod === "stripe" && order.payment
+                          ? "We're processing your refund. If there is a delay, our support team will assist you."
+                          : null}
+                    </div>
+                  ) : order.status === "Rejected" ? (
+                    <div className="terminal-banner rejected">
+                      The restaurant was unable to accept this order.
+                      <br />
+                      {order.refunded
+                        ? "Your refund has been initiated successfully."
+                        : order.paymentMethod === "stripe" && order.payment
+                          ? "We're processing your refund. If there is a delay, our support team will assist you."
+                          : null}
                     </div>
                   ) : (
                     <div className="order-timeline">

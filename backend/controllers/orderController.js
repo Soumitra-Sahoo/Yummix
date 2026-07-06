@@ -2,6 +2,7 @@ import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import foodModel from "../models/foodModel.js";
 import Stripe from "stripe";
+import { issueRefundIfNeeded } from "../services/refundService.js";
 import { assignRiderToOrder } from "../services/riderAssignmentService.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -137,7 +138,7 @@ const placeOrder = async (req, res) => {
       line_items,
       mode: "payment",
     });
-
+    await orderModel.findByIdAndUpdate(newOrder._id, { stripeSessionId: session.id });
     res.json({ success: true, session_url: session.url });
   } catch (error) {
     console.error("placeOrder:", error);
@@ -145,7 +146,6 @@ const placeOrder = async (req, res) => {
   }
 };
 
-// ── COD ORDER ───────────
 const placeOrderCOD = async (req, res) => {
   try {
     const { items, userId, address, couponCode, customerLocation } = req.body;
@@ -213,15 +213,23 @@ const placeOrderCOD = async (req, res) => {
   }
 };
 
-// ── STRIPE VERIFY ──────────
 const verifyOrder = async (req, res) => {
   const { orderId, success } = req.body;
   try {
     if (success === "true") {
-      await orderModel.findByIdAndUpdate(orderId, { payment: true });
       const order = await orderModel.findById(orderId);
+      if (!order) return res.json({ success: false, message: "Order not found" });
 
-      if (order?.couponCode === "FIRST15") {
+      let paymentIntentId = order.stripePaymentIntentId;
+      if (!paymentIntentId && order.stripeSessionId) {
+        const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
+        paymentIntentId = session.payment_intent;
+      }
+      await orderModel.findByIdAndUpdate(orderId, {
+        payment: true,
+        stripePaymentIntentId: paymentIntentId || null,
+      });
+      if (order.couponCode === "FIRST15") {
         await userModel.findByIdAndUpdate(order.userId, { hasUsedFirstCoupon: true });
       }
       res.json({ success: true, message: "Paid" });
@@ -299,12 +307,15 @@ const updateRestaurantOrderStatus = async (req, res) => {
 
     const allowedNext = RESTAURANT_TRANSITIONS[order.status];
     if (!allowedNext || !allowedNext.includes(status)) {
-      return res.json({
-        success: false,
-        message: `Cannot move from "${order.status}" to "${status}"`,
-      });
+      return res.json({ success: false, message: `Cannot move from "${order.status}" to "${status}"` });
     }
 
+    if (status === "Rejected") {
+      const refundResult = await issueRefundIfNeeded(order);
+      if (!refundResult.success) order.refundFailed = true;
+      order.cancelledBy = "restaurant";
+      order.cancelledAt = new Date();
+    }
     order.status = status;
     await order.save();
     if (status === "Ready for Pickup") {
@@ -325,15 +336,26 @@ const cancelOrder = async (req, res) => {
     if (!order) return res.json({ success: false, message: "Order not found" });
 
     if (!CANCELLABLE_STATUSES.includes(order.status)) {
+      return res.json({ success: false, message: "This order can no longer be cancelled" });
+    }
+
+    const refundResult = await issueRefundIfNeeded(order);
+    if (!refundResult.success) {
       return res.json({
         success: false,
-        message: "This order can no longer be cancelled",
+        message: "Refund failed. Please contact support — your order has not been cancelled.",
       });
     }
     order.status = "Cancelled";
     order.cancelledAt = new Date();
+    order.cancelledBy = "customer";
     await order.save();
-    res.json({ success: true, message: "Order cancelled" });
+    res.json({
+      success: true,
+      message: order.refunded
+        ? "Your refund has been initiated successfully. The amount will be credited according to your bank or payment provider's processing time."
+        : "Order cancelled",
+    });
   } catch (error) {
     console.error("cancelOrder:", error);
     res.json({ success: false, message: "Error" });

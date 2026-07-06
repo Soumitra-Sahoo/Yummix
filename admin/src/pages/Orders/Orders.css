@@ -167,6 +167,12 @@
   cursor: pointer;
 }
 
+.tag-alert {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fdba74;
+}
+
 .processing {
   background: #fffbeb;
 }
