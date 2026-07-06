@@ -61,8 +61,12 @@ const Order = () => {
   };
 
   useEffect(() => {
+  fetchAllOrders();
+  const interval = setInterval(() => {
     fetchAllOrders();
-  }, []);
+  }, 5000); 
+  return () => clearInterval(interval);
+}, []);
 
   return (
     <div className="orders-page">
