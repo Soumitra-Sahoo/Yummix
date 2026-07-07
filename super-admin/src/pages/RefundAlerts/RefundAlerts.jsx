@@ -30,13 +30,10 @@ const RefundAlerts = () => {
   };
 
   useEffect(() => {
-    fetchAlerts();
-    const interval = setInterval(() => {
-    fetchRestaurants();
-  }, 10000);
-
+  fetchAlerts();
+  const interval = setInterval(fetchAlerts, 10000);
   return () => clearInterval(interval);
-  }, []);
+}, []);
 
   return (
     <div className="refund-alerts-page">
