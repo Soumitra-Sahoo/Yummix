@@ -1,0 +1,77 @@
+.admin-orders-page {
+  padding: 30px;
+  width: 100%;
+}
+.admin-order-table {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+.admin-order-row {
+  background: white;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+.admin-order-info h4 {
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+.admin-order-info p {
+  font-size: 12.5px;
+  color: #9ca3af;
+  margin-bottom: 8px;
+}
+.status-pill {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 50px;
+  background: #f3f4f6;
+  color: #374151;
+  margin-right: 6px;
+}
+.status-pill.refunded {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+.status-pill.refund-failed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.row-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.retry-btn {
+  border: none;
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12.5px;
+}
+.cancel-btn {
+  border: none;
+  background: #fee2e2;
+  color: #ef4444;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12.5px;
+}
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #9ca3af;
+}

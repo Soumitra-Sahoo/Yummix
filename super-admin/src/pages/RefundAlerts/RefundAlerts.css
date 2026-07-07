@@ -1,0 +1,49 @@
+.refund-alerts-page {
+  padding: 30px;
+  width: 100%;
+}
+.alert-table {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+.alert-row {
+  background: white;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #ef4444;
+}
+.alert-info p {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.alert-info span {
+  display: block;
+  font-size: 12px;
+  color: #9ca3af;
+}
+.manual-review {
+  color: #dc2626 !important;
+  font-weight: 700 !important;
+}
+.resolve-btn {
+  border: none;
+  background: #dcfce7;
+  color: #16a34a;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #9ca3af;
+}

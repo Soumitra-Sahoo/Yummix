@@ -17,6 +17,7 @@ const restaurantSchema = new mongoose.Schema(
     image: { type: String, required: true },
     imagePublicId: { type: String, default: "" },
     isApproved: { type: Boolean, default: false },
+    rejected: { type: Boolean, default: false },
 
     location: {
       lat: { type: Number, default: null },

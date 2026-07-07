@@ -10,7 +10,6 @@ const createRiderToken = (id) =>
 const registerRider = async (req, res) => {
   try {
     const { name, email, password, phone, vehicleType, vehicleNumber } = req.body;
-
     if (!name || !email || !password || !phone || !vehicleNumber) {
       return res.json({ success: false, message: "All fields are required" });
     }
@@ -141,7 +140,7 @@ const changePassword = async (req, res) => {
       return res.json({ success: false, message: "Incorrect password" });
     }
 
-    const salt           = await bcrypt.genSalt(10);
+    const salt  = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
     await riderModel.findByIdAndUpdate(req.riderId, { password: hashedPassword });
 
@@ -163,18 +162,15 @@ const toggleOnlineStatus = async (req, res) => {
         message: "You have an active delivery — finish it before going offline",
       });
     }
-
     await riderModel.findByIdAndUpdate(req.riderId, {
       isOnline: newStatus,
       isAvailable: newStatus ? true : false,
     });
-
     if (newStatus) {
       processQueuedOrders().catch((e) => console.error("processQueuedOrders:", e));
     }
     res.json({
-      success: true,
-      isOnline: newStatus,
+      success: true, isOnline: newStatus,
       message: newStatus ? "You are now online" : "You are now offline",
     });
   } catch (error) {
@@ -201,8 +197,37 @@ const updateLocation = async (req, res) => {
   }
 };
 
+const getPendingRiders = async (req, res) => {
+  try {
+    const riders = await riderModel.find({ verificationStatus: "pending" }).select("-password");
+    res.json({ success: true, data: riders });
+  } catch (error) {
+    console.error("getPendingRiders:", error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+const approveRider = async (req, res) => {
+  try {
+    await riderModel.findByIdAndUpdate(req.body.riderId, { verificationStatus: "approved" });
+    res.json({ success: true, message: "Rider approved" });
+  } catch (error) {
+    console.error("approveRider:", error);
+    res.json({ success: false, message: "Approval failed" });
+  }
+};
+
+const rejectRider = async (req, res) => {
+  try {
+    await riderModel.findByIdAndUpdate(req.body.riderId, { verificationStatus: "rejected" });
+    res.json({ success: true, message: "Rider rejected" });
+  } catch (error) {
+    console.error("rejectRider:", error);
+    res.json({ success: false, message: "Rejection failed" });
+  }
+};
+
 export {
-  registerRider, loginRider,
-  getRiderProfile, updateRiderProfile,
-  changePassword, toggleOnlineStatus, updateLocation,
+  registerRider, loginRider,  getRiderProfile, updateRiderProfile,  changePassword,
+   toggleOnlineStatus, updateLocation,  getPendingRiders, approveRider, rejectRider,
 };

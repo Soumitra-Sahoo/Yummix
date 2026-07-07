@@ -1,0 +1,100 @@
+.restaurants-page {
+  padding: 30px;
+  width: 100%;
+}
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.filter-tabs {
+  display: flex;
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+.filter-tabs button {
+  border: none;
+  background: transparent;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  border-right: 1px solid #e5e7eb;
+}
+.filter-tabs button:last-child {
+  border-right: none;
+}
+.filter-tabs button.active {
+  background: #1a1a2e;
+  color: white;
+}
+.restaurant-table {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.restaurant-row {
+  background: white;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+.restaurant-row img {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+.restaurant-info {
+  flex: 1;
+}
+.restaurant-info h4 {
+  margin-bottom: 4px;
+}
+.restaurant-info p {
+  font-size: 12.5px;
+  color: #9ca3af;
+}
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.status-pending { background: #fef9c3; color: #92400e; }
+.status-approved { background: #dcfce7; color: #16a34a; }
+.status-rejected { background: #fee2e2; color: #991b1b; }
+.row-actions {
+  display: flex;
+  gap: 8px;
+}
+.approve-btn {
+  border: none;
+  background: #dcfce7;
+  color: #16a34a;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.reject-btn {
+  border: none;
+  background: #fee2e2;
+  color: #ef4444;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #9ca3af;
+}
