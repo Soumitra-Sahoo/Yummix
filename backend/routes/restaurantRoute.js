@@ -2,16 +2,8 @@ import express from "express";
 import upload from "../config/cloudinary.js";
 import adminAuth from "../middleware/adminAuth.js";
 import restaurantAuth from "../middleware/restaurantAuth.js";
-import {
-  registerRestaurant,
-  loginRestaurant,
-  getPendingRestaurants,
-  approveRestaurant,
-  getRestaurantProfile,
-  updateRestaurantProfile,
-  listRestaurants,
-  updateRestaurantLocation,
-} from "../controllers/restaurantController.js";
+import {  registerRestaurant,  loginRestaurant,  getPendingRestaurants,  approveRestaurant,  getRestaurantProfile,  updateRestaurantProfile,
+  listRestaurants, rejectRestaurant, listAllRestaurants,  updateRestaurantLocation} from "../controllers/restaurantController.js";
 
 const restaurantRouter = express.Router();
 
@@ -23,21 +15,15 @@ const uploadMiddleware = (req, res, next) => {
   });
 };
 
-restaurantRouter.post("/register", uploadMiddleware, registerRestaurant);
-restaurantRouter.post("/login", loginRestaurant);
+restaurantRouter.get("/all", adminAuth, listAllRestaurants);
 restaurantRouter.get("/pending", adminAuth, getPendingRestaurants);
-restaurantRouter.post("/approve", adminAuth, approveRestaurant);
 restaurantRouter.get("/list", listRestaurants);
 restaurantRouter.get("/profile", restaurantAuth, getRestaurantProfile);
-restaurantRouter.post(
-  "/profile/update",
-  restaurantAuth,
-  updateRestaurantProfile,
-);
-restaurantRouter.post(
-  "/location/update",
-  restaurantAuth,
-  updateRestaurantLocation,
-); 
+restaurantRouter.post("/register", uploadMiddleware, registerRestaurant);
+restaurantRouter.post("/login", loginRestaurant);
+restaurantRouter.post("/reject", adminAuth, rejectRestaurant);
+restaurantRouter.post("/approve", adminAuth, approveRestaurant);
+restaurantRouter.post("/profile/update", restaurantAuth, updateRestaurantProfile);
+restaurantRouter.post("/location/update", restaurantAuth, updateRestaurantLocation); 
 
 export default restaurantRouter;

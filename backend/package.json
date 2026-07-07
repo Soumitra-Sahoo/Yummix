@@ -5,7 +5,8 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "server": "nodemon server.js"
+    "server": "nodemon server.js",
+     "create-admin": "node scripts/createAdmin.js"
   },
   "author": "",
   "license": "ISC",

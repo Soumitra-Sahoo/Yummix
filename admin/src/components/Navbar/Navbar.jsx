@@ -13,7 +13,14 @@ const Navbar = ({ setToken }) => {
     <div className="navbar">
       <img className="logo" src={assets.logo} alt="" />
       <div className="navbar-right">
-        <img className="profile" src={assets.profile_image} alt="" />
+        <span className="restaurant-name">{restaurant?.restaurantName}</span>
+
+        <img
+          className="profile"
+          src={restaurant?.image || assets.profile_image}
+          alt=""
+        />
+
         <button onClick={logout}>Logout</button>
       </div>
     </div>

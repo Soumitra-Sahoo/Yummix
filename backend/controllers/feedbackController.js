@@ -20,4 +20,14 @@ const submitPartnerRequest = async (req, res) => {
   }
 };
 
-export { submitFeedback, submitPartnerRequest };
+const listSubmissions = async (req, res) => {
+  try {
+    const submissions = await feedbackModel.find({}).sort({ createdAt: -1 });
+    res.json({ success: true, data: submissions });
+  } catch (error) {
+    console.error("listSubmissions:", error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+export { submitFeedback, submitPartnerRequest, listSubmissions };

@@ -82,7 +82,7 @@ const loginRestaurant = async (req, res) => {
 
 const getPendingRestaurants = async (req, res) => {
   try {
-    const restaurants = await restaurantModel.find({ isApproved: false });
+    const restaurants = await restaurantModel.find({ isApproved: false, rejected: { $ne: true } });
     res.json({ success: true, data: restaurants });
   } catch (error) {
     console.error(error);
@@ -103,7 +103,7 @@ const listRestaurants = async (req, res) => {
 const approveRestaurant = async (req, res) => {
   try {
     await restaurantModel.findByIdAndUpdate(req.body.restaurantId, {
-      isApproved: true,
+      isApproved: true,  rejected: false
     });
     res.json({ success: true, message: "Restaurant approved" });
   } catch (error) {
@@ -154,11 +154,33 @@ const updateRestaurantLocation = async (req, res) => {
   }
 };
 
+const rejectRestaurant = async (req, res) => {
+  try {
+    await restaurantModel.findByIdAndUpdate(req.body.restaurantId, { isApproved: false, rejected: true });
+    res.json({ success: true, message: "Restaurant rejected" });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: "Rejection failed" });
+  }
+};
+
+const listAllRestaurants = async (req, res) => {
+  try {
+    const restaurants = await restaurantModel.find({});
+    res.json({ success: true, data: restaurants });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
 export {
   registerRestaurant,
   loginRestaurant,
   getPendingRestaurants,
   approveRestaurant,
+  rejectRestaurant,
+  listAllRestaurants,
   getRestaurantProfile,
   updateRestaurantProfile,
   listRestaurants,

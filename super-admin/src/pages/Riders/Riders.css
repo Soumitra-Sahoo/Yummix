@@ -1,0 +1,71 @@
+.riders-page {
+  padding: 30px;
+  width: 100%;
+}
+.rider-table {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+.rider-row {
+  background: white;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+.rider-row img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.rider-info {
+  flex: 1;
+}
+.rider-info p {
+  font-size: 12.5px;
+  color: #9ca3af;
+}
+.rider-docs {
+  display: flex;
+  gap: 10px;
+}
+.rider-docs a {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+.row-actions {
+  display: flex;
+  gap: 8px;
+}
+.approve-btn {
+  border: none;
+  background: #dcfce7;
+  color: #16a34a;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.reject-btn {
+  border: none;
+  background: #fee2e2;
+  color: #ef4444;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #9ca3af;
+}
