@@ -23,7 +23,7 @@ const AssignmentAlert = () => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          setPendingAssignment(null); 
+          setPendingAssignment(null);
           return 0;
         }
         return prev - 1;
@@ -68,8 +68,8 @@ const AssignmentAlert = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden animate-[slideUp_0.3s_ease]">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
+      <div className="w-full max-w-md mx-4 mb-20 bg-white rounded-3xl shadow-2xl overflow-hidden animate-[slideUp_0.3s_ease]">
         <div className="bg-brand px-5 pt-5 pb-4">
           <div className="flex items-center justify-between mb-1">
             <span className="text-dark font-bold text-lg">

@@ -8,6 +8,18 @@ const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const VEHICLE_TYPES = ["Bike", "Bicycle", "Scooter"];
 
+const formatFileName = (fileName, maxLength = 18) => {
+  if (!fileName) return "";
+  const lastDot = fileName.lastIndexOf(".");
+  const extension = lastDot !== -1 ? fileName.slice(lastDot) : "";
+  const name = lastDot !== -1 ? fileName.slice(0, lastDot) : fileName;
+
+  if (name.length <= maxLength) {
+    return fileName;
+  }
+  return `${name.slice(0, maxLength)}...${extension}`;
+};
+
 const FileField = ({
   label,
   name,
@@ -19,7 +31,6 @@ const FileField = ({
     <label className="text-sm font-semibold text-gray-700 block mb-1.5">
       {label}
     </label>
-
     <label
       className={`flex items-center justify-between w-full px-4 py-3 rounded-xl border-2 border-dashed cursor-pointer transition
       ${
@@ -28,35 +39,24 @@ const FileField = ({
           : "border-gray-200 bg-gray-50 hover:border-yellow-400"
       }`}
     >
-      <div className="flex items-center gap-3">
-        <Upload
-          size={16}
-          className={file ? "text-green-600" : "text-gray-400"}
-        />
-
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <Upload size={16} className={file ? "text-green-600" : "text-gray-400"} />
         <span
-          className={`text-sm ${
+          className={`text-sm truncate ${
             file ? "text-green-700 font-medium" : "text-gray-400"
           }`}
         >
-          {file ? file.name : "Click to upload (image or PDF)"}
+          {file ? formatFileName(file.name) : "Click to upload (image or PDF)"}
         </span>
       </div>
 
       {file && (
-        <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-semibold">
+        <span className="shrink-0 text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-semibold">
           Uploaded
         </span>
       )}
 
-      <input
-        type="file"
-        name={name}
-        onChange={onChange}
-        accept={accept}
-        hidden
-        required
-      />
+      <input type="file" name={name} onChange={onChange} accept={accept} hidden required/>
     </label>
   </div>
 );
@@ -129,7 +129,6 @@ const Register = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Personal Information */}
           <div className="bg-gray-50 rounded-2xl p-5">
             <h3 className="text-center text-lg font-bold text-gray-900 mb-5">
               Personal Information
@@ -181,7 +180,6 @@ const Register = () => {
             </div>
           </div>
 
-          {/* Vehicle Details */}
           <div className="bg-gray-50 rounded-2xl p-5">
             <h3 className="text-center text-lg font-bold text-gray-900 mb-5">
               Vehicle Details
@@ -198,7 +196,7 @@ const Register = () => {
                   name="vehicleNumber"
                   value={form.vehicleNumber}
                   onChange={handleChange}
-                  placeholder="WB12AB1234"
+                  placeholder="XX12AB1234"
                   required
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-100"
                 />
@@ -223,7 +221,6 @@ const Register = () => {
             </div>
           </div>
 
-          {/* Upload Documents */}
           <div className="bg-gray-50 rounded-2xl p-5">
             <div className="text-center mb-5">
               <h3 className="text-lg font-bold text-gray-900">
