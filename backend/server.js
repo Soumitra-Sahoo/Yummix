@@ -27,6 +27,7 @@ app.use(
       "https://yummix-admin.vercel.app",
       "https://rider-eta-rust.vercel.app",
       "https://yummixsuperadmin.vercel.app",
+      "https://yummix-backend.vercel.app",
       "http://localhost:5173",
       "http://localhost:5174",
       "http://localhost:5175",
