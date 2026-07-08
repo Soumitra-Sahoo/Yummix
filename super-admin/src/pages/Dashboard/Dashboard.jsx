@@ -25,7 +25,7 @@ const Dashboard = () => {
     fetchData();
     const interval = setInterval(() => {
     fetchRestaurants();
-  }, 5000);
+  }, 7000);
 
   return () => clearInterval(interval);
   }, []);

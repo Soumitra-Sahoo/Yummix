@@ -1,4 +1,5 @@
 import { processExpiredAssignments, processQueuedOrders } from "../services/riderAssignmentService.js";
+import { retryFailedRefunds } from "../services/refundService.js";
 
 const runAssignmentSweep = async (req, res) => {
   const authHeader = req.headers.authorization;
@@ -8,7 +9,8 @@ const runAssignmentSweep = async (req, res) => {
   try {
     const timedOut = await processExpiredAssignments();
     await processQueuedOrders();
-    res.json({ success: true, timedOut });
+    const refundResult = await retryFailedRefunds();
+    res.json({ success: true, timedOut, refunds: refundResult });
   } catch (error) {
     console.error("[cron:process-assignments]", error);
     res.status(500).json({ success: false, message: "Cron sweep failed" });

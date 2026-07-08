@@ -2,7 +2,7 @@ import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import foodModel from "../models/foodModel.js";
 import Stripe from "stripe";
-import { issueRefundIfNeeded } from "../services/refundService.js";
+import { attemptRefund } from "../services/refundService.js";
 import { assignRiderToOrder } from "../services/riderAssignmentService.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -309,15 +309,15 @@ const updateRestaurantOrderStatus = async (req, res) => {
     if (!allowedNext || !allowedNext.includes(status)) {
       return res.json({ success: false, message: `Cannot move from "${order.status}" to "${status}"` });
     }
-
+    order.status = status;
     if (status === "Rejected") {
-      const refundResult = await issueRefundIfNeeded(order);
-      if (!refundResult.success) order.refundFailed = true;
       order.cancelledBy = "restaurant";
       order.cancelledAt = new Date();
+      await attemptRefund(order);
+    } else {
+      await order.save();
     }
-    order.status = status;
-    await order.save();
+
     if (status === "Ready for Pickup") {
       await triggerRiderAssignment(order._id, order.customerLocation);
     }
@@ -338,23 +338,17 @@ const cancelOrder = async (req, res) => {
     if (!CANCELLABLE_STATUSES.includes(order.status)) {
       return res.json({ success: false, message: "This order can no longer be cancelled" });
     }
-
-    const refundResult = await issueRefundIfNeeded(order);
-    if (!refundResult.success) {
-      return res.json({
-        success: false,
-        message: "Refund failed. Please contact support — your order has not been cancelled.",
-      });
-    }
     order.status = "Cancelled";
     order.cancelledAt = new Date();
     order.cancelledBy = "customer";
-    await order.save();
+    const { refunded } = await attemptRefund(order);
     res.json({
       success: true,
-      message: order.refunded
+      message: refunded
         ? "Your refund has been initiated successfully. The amount will be credited according to your bank or payment provider's processing time."
-        : "Order cancelled",
+        : order.paymentMethod === "stripe" && order.payment
+          ? "Your order has been cancelled. We're processing your refund. If there is a delay, our support team will assist you."
+          : "Order cancelled",
     });
   } catch (error) {
     console.error("cancelOrder:", error);

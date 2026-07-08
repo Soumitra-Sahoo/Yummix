@@ -51,6 +51,9 @@ const orderSchema = new mongoose.Schema({
   refundId: { type: String, default: null },
   refundedAt: { type: Date, default: null },
   refundFailed: { type: Boolean, default: false },
+  refundRetryCount: { type: Number, default: 0 },
+  lastRefundError: { type: String, default: null },
+  refundNeedsManualReview: { type: Boolean, default: false },
   cancelledBy: {
     type: String,
     enum: ["customer", "restaurant", "system", "admin", null],

@@ -1,7 +1,7 @@
 import riderModel from "../models/riderModel.js";
 import orderModel from "../models/orderModel.js";
 import riderAssignmentModel from "../models/riderAssignmentModel.js";
-import { issueRefundIfNeeded } from "./refundService.js";
+import { attemptRefund } from "./refundService.js";
 
 const ASSIGNMENT_TIMEOUT_MS = 60 * 1000;
 const MAX_ASSIGNMENT_RETRIES = 5;
@@ -42,19 +42,19 @@ const assignRiderToOrder = async (orderId, orderLat, orderLng) => {
     const order = await orderModel.findById(orderId);
     if (!order) return;
 
-    if ((order.assignmentTries || 0) >= MAX_ASSIGNMENT_RETRIES) {
-      
-      order.riderAssignmentFailed = true;
-      order.isQueued = false;
-      order.status = "Cancelled";
-      order.cancelledAt = new Date();
-      order.cancelledBy = "system";
-      const refundResult = await issueRefundIfNeeded(order);
-      if (!refundResult.success) order.refundFailed = true;
-      await order.save();
-      console.log(`[Assignment] Order ${orderId} auto-cancelled — no riders found after ${MAX_ASSIGNMENT_RETRIES} attempts`);
-      return;
-    }
+   if ((order.assignmentTries || 0) >= MAX_ASSIGNMENT_RETRIES) {
+  order.riderAssignmentFailed = true;
+  order.isQueued = false;
+  order.status = "Cancelled";
+  order.cancelledAt = new Date();
+  order.cancelledBy = "system";
+
+  await attemptRefund(order);
+  console.log(
+    `[Assignment] Order ${orderId} auto-cancelled — no riders found after ${MAX_ASSIGNMENT_RETRIES} attempts`
+  );
+  return;
+}
 
     const nextTries = (order.assignmentTries || 0) + 1;
     const previousAssignments = await riderAssignmentModel.find({
