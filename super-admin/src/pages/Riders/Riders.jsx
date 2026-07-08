@@ -43,10 +43,7 @@ const Riders = () => {
 
   useEffect(() => {
     fetchRiders();
-    const interval = setInterval(() => {
-    fetchRestaurants();
-  }, 5000);
-
+    const interval = setInterval(fetchRiders, 5000);
   return () => clearInterval(interval);
   }, []);
 

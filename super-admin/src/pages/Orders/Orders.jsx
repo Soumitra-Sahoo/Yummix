@@ -48,12 +48,9 @@ const Orders = () => {
 
   useEffect(() => {
     fetchOrders();
-    const interval = setInterval(() => {
-    fetchRestaurants();
-  }, 5000);
-
-  return () => clearInterval(interval);
-  }, []);
+    const interval = setInterval(fetchOrders, 5000);
+    return () => clearInterval(interval);
+    }, []);
 
   return (
     <div className="admin-orders-page">

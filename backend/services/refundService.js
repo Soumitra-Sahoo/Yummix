@@ -53,7 +53,7 @@ const attemptRefund = async (order) => {
   }
 };
 
-export const retryFailedRefunds = async () => {
+const retryFailedRefunds = async () => {
   const orderModel = (await import("../models/orderModel.js")).default;
   const pending = await orderModel.find({
     refundFailed: true,

@@ -20,12 +20,9 @@ const Feedback = () => {
 
   useEffect(() => {
     fetchSubmissions();
-    const interval = setInterval(() => {
-    fetchRestaurants();
-  }, 10000);
-
-  return () => clearInterval(interval);
-  }, []);
+    const interval = setInterval(fetchSubmissions, 10000);
+    return () => clearInterval(interval);
+    }, []);
 
   const filtered = submissions.filter((s) => filter === "all" || s.type === filter);
 
