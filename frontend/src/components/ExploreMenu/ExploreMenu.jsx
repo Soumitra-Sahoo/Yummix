@@ -13,7 +13,6 @@ const ExploreMenu = ({ category, setCategory }) => {
       </p>
 
       <div className="explore-menu-list">
-        {/* "All" option */}
         <div
           className="explore-menu-list-item"
           onClick={() => setCategory("All")}

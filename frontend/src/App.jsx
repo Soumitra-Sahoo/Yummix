@@ -40,7 +40,6 @@ const App = () => {
         <QuickCheckout />
         <Routes>
           <Route path='/' element={<Home searchQuery={searchQuery}  />}/>
-          <Route path='/menu' element={<ExploreMenu/>}/>
           <Route path='/cart' element={<Cart />}/>
           <Route path='/order' element={<PlaceOrder />}/>
           <Route path='/myorders' element={<MyOrders />}/>
@@ -52,7 +51,7 @@ const App = () => {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path='/menu' element={<Menu />}/>
+          <Route path='/menu' element={<Menu searchQuery={searchQuery}/>}/>
           <Route path="/restaurant/:id" element={<Restaurant />} />
         </Routes>
       </div>
