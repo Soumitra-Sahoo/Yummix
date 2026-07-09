@@ -27,9 +27,6 @@ const Dashboard = () => {
   return () => clearInterval(interval);
 }, []);
 
-  return () => clearInterval(interval);
-  }, []);
-
   return (
     <div style={{ padding: 30, width: "100%" }}>
       <h2 style={{ marginBottom: 25 }}>Platform Overview</h2>
