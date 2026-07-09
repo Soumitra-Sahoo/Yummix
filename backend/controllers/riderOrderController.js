@@ -73,7 +73,7 @@ const rejectDelivery = async (req, res) => {
     });
 
     const order = await orderModel.findById(orderId);
-    if (order?.customerLocation?.lat) {
+    if (  order?.customerLocation?.lat != null &&   order?.customerLocation?.lng != null) {
       await assignRiderToOrder(
         orderId,
         order.customerLocation.lat,

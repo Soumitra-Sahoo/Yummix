@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import adminAlertModel from "../models/adminAlertModel.js";
+import orderModel from "../models/orderModel.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const MAX_REFUND_RETRIES = 5;
@@ -54,7 +55,6 @@ const attemptRefund = async (order) => {
 };
 
 const retryFailedRefunds = async () => {
-  const orderModel = (await import("../models/orderModel.js")).default;
   const pending = await orderModel.find({
     refundFailed: true,
     refunded: false,

@@ -66,11 +66,19 @@ const loginRestaurant = async (req, res) => {
     if (!isMatch)
       return res.json({ success: false, message: "Invalid credentials" });
 
-    if (!restaurant.isApproved)
+    if (restaurant.rejected) {
+      return res.json({
+        success: false,
+        message: "Your registration was rejected. Contact support.",
+      });
+    }
+
+    if (!restaurant.isApproved) {
       return res.json({
         success: false,
         message: "Waiting for admin approval",
       });
+    }
 
     const token = createRestaurantToken(restaurant._id);
     res.json({ success: true, token });
@@ -82,7 +90,10 @@ const loginRestaurant = async (req, res) => {
 
 const getPendingRestaurants = async (req, res) => {
   try {
-    const restaurants = await restaurantModel.find({ isApproved: false, rejected: { $ne: true } });
+    const restaurants = await restaurantModel.find({
+      isApproved: false,
+      rejected: { $ne: true },
+    });
     res.json({ success: true, data: restaurants });
   } catch (error) {
     console.error(error);
@@ -103,7 +114,8 @@ const listRestaurants = async (req, res) => {
 const approveRestaurant = async (req, res) => {
   try {
     await restaurantModel.findByIdAndUpdate(req.body.restaurantId, {
-      isApproved: true,  rejected: false
+      isApproved: true,
+      rejected: false,
     });
     res.json({ success: true, message: "Restaurant approved" });
   } catch (error) {
@@ -156,7 +168,10 @@ const updateRestaurantLocation = async (req, res) => {
 
 const rejectRestaurant = async (req, res) => {
   try {
-    await restaurantModel.findByIdAndUpdate(req.body.restaurantId, { isApproved: false, rejected: true });
+    await restaurantModel.findByIdAndUpdate(req.body.restaurantId, {
+      isApproved: false,
+      rejected: true,
+    });
     res.json({ success: true, message: "Restaurant rejected" });
   } catch (error) {
     console.error(error);

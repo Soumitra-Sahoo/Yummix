@@ -22,13 +22,10 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(() => {
-    fetchRestaurants();
-  }, 7000);
-
+  fetchData();
+  const interval = setInterval(fetchData, 7000);
   return () => clearInterval(interval);
-  }, []);
+}, []);
 
   return (
     <div style={{ padding: 30, width: "100%" }}>

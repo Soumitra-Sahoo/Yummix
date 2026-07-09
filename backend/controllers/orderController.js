@@ -267,15 +267,36 @@ const userOrders = async (req, res) => {
 
 const updateStatus = async (req, res) => {
   try {
-    const update =
-      req.body.status === "Delivered"
-        ? { status: req.body.status, deliveredAt: new Date(), payment: true }
-        : { status: req.body.status };
-    await orderModel.findByIdAndUpdate(req.body.orderId, update);
-    res.json({ success: true, message: "Status Updated" });
+    const { orderId, status } = req.body;
+    if (["Cancelled", "Rejected"].includes(status)) {
+      return res.json({
+        success: false,
+        message: "Use the dedicated cancel endpoint for this",
+      });
+    }
+
+    const update = status === "Delivered"
+        ? {
+            status,
+            deliveredAt: new Date(),
+            payment: true,
+          }
+        : {
+            status,
+          };
+
+    await orderModel.findByIdAndUpdate(orderId, update);
+
+    res.json({
+      success: true,
+      message: "Status Updated",
+    });
   } catch (error) {
-    console.error(error);
-    res.json({ success: false, message: "Error" });
+    console.error("updateStatus:", error);
+    res.json({
+      success: false,
+      message: "Error",
+    });
   }
 };
 
