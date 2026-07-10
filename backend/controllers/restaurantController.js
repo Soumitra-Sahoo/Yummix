@@ -2,15 +2,14 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import validator from "validator";
 import restaurantModel from "../models/restaurantModel.js";
+import { getCache, setCache, deleteCache } from "../utils/cacheHelper.js";
 
 const createRestaurantToken = (id) =>
   jwt.sign({ id, role: "restaurant" }, process.env.JWT_SECRET);
 
 const registerRestaurant = async (req, res) => {
   try {
-    const { restaurantName, ownerName, email, password, phone, address } =
-      req.body;
-
+    const { restaurantName, ownerName, email, password, phone, address } = req.body;
     const exists = await restaurantModel.findOne({ email });
     if (exists)
       return res.json({ success: false, message: "Restaurant already exists" });
@@ -42,7 +41,7 @@ const registerRestaurant = async (req, res) => {
       imagePublicId: req.file.filename,
       isApproved: false,
     });
-
+    await deleteCache("restaurant:list");
     res.json({
       success: true,
       message: "Registration submitted. Awaiting approval.",
@@ -103,11 +102,31 @@ const getPendingRestaurants = async (req, res) => {
 
 const listRestaurants = async (req, res) => {
   try {
-    const restaurants = await restaurantModel.find({ isApproved: true });
-    res.json({ success: true, data: restaurants });
+    const cacheKey = "restaurant:list";
+    const cached = await getCache(cacheKey);
+
+    if (cached) {
+      return res.json({
+        success: true,
+        data: cached,
+        cached: true,
+      });
+    }
+    const restaurants = await restaurantModel.find({
+      isApproved: true,
+    });
+    await setCache(cacheKey, restaurants);
+    res.json({
+      success: true,
+      data: restaurants,
+      cached: false,
+    });
   } catch (error) {
     console.error(error);
-    res.json({ success: false, message: "Error" });
+    res.json({
+      success: false,
+      message: "Error",
+    });
   }
 };
 
@@ -117,6 +136,7 @@ const approveRestaurant = async (req, res) => {
       isApproved: true,
       rejected: false,
     });
+    await deleteCache("restaurant:list");
     res.json({ success: true, message: "Restaurant approved" });
   } catch (error) {
     console.error(error);
@@ -143,6 +163,7 @@ const updateRestaurantProfile = async (req, res) => {
       phone: req.body.phone,
       address: req.body.address,
     });
+    await deleteCache("restaurant:list");
     res.json({ success: true, message: "Profile Updated" });
   } catch (error) {
     console.error(error);
@@ -153,7 +174,7 @@ const updateRestaurantProfile = async (req, res) => {
 const updateRestaurantLocation = async (req, res) => {
   try {
     const { lat, lng } = req.body;
-    if (!lat || !lng) {
+    if (lat == null || lng == null) {
       return res.json({ success: false, message: "lat and lng are required" });
     }
     await restaurantModel.findByIdAndUpdate(req.restaurantId, {
@@ -172,6 +193,7 @@ const rejectRestaurant = async (req, res) => {
       isApproved: false,
       rejected: true,
     });
+    await deleteCache("restaurant:list");
     res.json({ success: true, message: "Restaurant rejected" });
   } catch (error) {
     console.error(error);

@@ -1,14 +1,35 @@
 import foodModel from "../models/foodModel.js";
 import { v2 as cloudinary } from "cloudinary";
+import { getCache, setCache, deleteCache } from "../utils/cacheHelper.js";
 
 const listFood = async (req, res) => {
   try {
-    // Only show available food items to customers
-    const foods = await foodModel.find({ isAvailable: true });
-    res.json({ success: true, data: foods });
+    const cacheKey = "food:list";
+    const cached = await getCache(cacheKey);
+
+    if (cached) {
+      return res.json({
+        success: true,
+        data: cached,
+      });
+    }
+
+    const foods = await foodModel.find({
+      isAvailable: true,
+    });
+
+    await setCache(cacheKey, foods);
+
+    res.json({
+      success: true,
+      data: foods,
+    });
   } catch (error) {
     console.error(error);
-    res.json({ success: false, message: "Error" });
+    res.json({
+      success: false,
+      message: "Error",
+    });
   }
 };
 
@@ -34,6 +55,8 @@ const addFood = async (req, res) => {
     });
 
     await food.save();
+    await deleteCache(`restaurant:menu:${req.restaurantId}`);
+    await deleteCache("food:list");
     res.status(200).json({ success: true, message: "Food added successfully", data: food });
   } catch (error) {
     console.error("Error adding food:", error);
@@ -56,6 +79,8 @@ const updateFood = async (req, res) => {
     if (req.body.isAvailable !== undefined) food.isAvailable = req.body.isAvailable === true || req.body.isAvailable === "true";
 
     await food.save();
+    await deleteCache(`restaurant:menu:${req.restaurantId}`);
+    await deleteCache("food:list");
     res.json({ success: true, message: "Food Updated" });
   } catch (error) {
     console.error(error);
@@ -70,7 +95,8 @@ const removeFood = async (req, res) => {
 
     if (food.imagePublicId) await cloudinary.uploader.destroy(food.imagePublicId);
     await foodModel.findByIdAndDelete(food._id);
-
+    await deleteCache(`restaurant:menu:${req.restaurantId}`);
+    await deleteCache("food:list");
     res.json({ success: true, message: "Food Removed" });
   } catch (error) {
     console.error(error);
@@ -80,7 +106,6 @@ const removeFood = async (req, res) => {
 
 const restaurantFoods = async (req, res) => {
   try {
-    // Admin sees ALL items including unavailable
     const foods = await foodModel.find({ restaurantId: req.restaurantId });
     res.json({ success: true, data: foods });
   } catch (error) {
@@ -91,13 +116,39 @@ const restaurantFoods = async (req, res) => {
 
 const getRestaurantFoods = async (req, res) => {
   try {
+    const { restaurantId } = req.params;
+    const cacheKey = `restaurant:menu:${restaurantId}`;
+    const cached = await getCache(cacheKey);
+    if (cached) {
+      return res.json({
+        success: true,
+        data: cached,
+        cached: true,
+      });
+    }
+
     const foods = await foodModel
-      .find({ restaurantId: req.params.restaurantId, isAvailable: true })
-      .populate("restaurantId", "restaurantName address image isApproved");
-    res.json({ success: true, data: foods });
+      .find({
+        restaurantId,
+        isAvailable: true,
+      })
+      .populate(
+        "restaurantId",
+        "restaurantName address image isApproved"
+      );
+
+    await setCache(cacheKey, foods);
+    res.json({
+      success: true,
+      data: foods,
+      cached: false,
+    });
   } catch (error) {
     console.error(error);
-    res.json({ success: false, message: "Error" });
+    res.json({
+      success: false,
+      message: "Error",
+    });
   }
 };
 
