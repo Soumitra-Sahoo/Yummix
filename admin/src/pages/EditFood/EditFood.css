@@ -1,4 +1,3 @@
-/* ── EDIT FOOD PAGE ──────────────────────────────────── */
 .edit-food {
   width: 100%;
   padding: 32px 36px;
@@ -139,7 +138,6 @@
   .image-preview-section img { width: 100%; height: 200px; }
 }
 
-/* ── NEW FIELD STYLES (appended) ─────────────────────── */
 .spice-selector {
   display: flex;
   gap: 8px;
