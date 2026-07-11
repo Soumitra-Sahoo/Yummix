@@ -1,0 +1,2316 @@
+openapi: 3.1.0
+
+info:
+  title: Yummix API
+  version: 1.0.0
+  description: >
+    Multi-restaurant food delivery platform API. Covers customer ordering,
+    restaurant order/menu management, rider assignment and delivery workflow,
+    admin oversight, refund handling, and platform caching. Deployed as
+    Vercel serverless functions.
+  contact:
+    name: Soumitra Sahoo
+    url: https://github.com/Soumitra-Sahoo/Yummix
+
+servers:
+  - url: https://your-backend.vercel.app
+    description: Production
+  - url: http://localhost:4000
+    description: Local development
+
+tags:
+  - name: Auth
+    description: Customer account registration and login
+  - name: Admin
+    description: Super admin oversight (dashboard, refunds, force actions)
+  - name: Restaurant
+    description: Restaurant account, profile, and approval workflow
+  - name: Food
+    description: Menu items (create, update, list)
+  - name: Cart
+    description: Customer cart operations
+  - name: Order
+    description: Order placement, cancellation, tracking, status transitions
+  - name: Rating
+    description: Post-delivery food ratings
+  - name: Rider
+    description: Rider account, verification, availability, location
+  - name: Rider Order
+    description: Rider-side delivery assignment and status updates
+  - name: Rider Dashboard
+    description: Rider earnings and performance stats
+  - name: Feedback
+    description: Customer feedback and restaurant partner requests
+  - name: Cron
+    description: Scheduled system maintenance (internal use)
+  - name: System
+    description: Health check
+
+security:
+  - tokenAuth: []
+
+components:
+  securitySchemes:
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: token
+      description: >
+        Raw JWT issued by /api/user/login, /api/restaurant/login,
+        /api/rider/login, or /api/admin/login. Sent as-is in a header named
+        "token" — NOT prefixed with "Bearer ". The token's embedded role
+        claim determines which endpoints it can access.
+    cronAuth:
+      type: http
+      scheme: bearer
+      description: >
+        Static secret configured as CRON_SECRET, sent as
+        "Authorization: Bearer <CRON_SECRET>" by Vercel Cron or an external
+        scheduler. Not a user-issued JWT.
+
+  schemas:
+    SuccessMessage:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        token:
+          type: string
+          description: JWT to be sent back in the "token" header on subsequent requests
+
+    GeoPoint:
+      type: object
+      properties:
+        lat:
+          type: number
+          nullable: true
+        lng:
+          type: number
+          nullable: true
+
+    Address:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        street:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        pincode:
+          type: string
+        country:
+          type: string
+        phone:
+          type: string
+
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        isAdmin:
+          type: boolean
+        cartData:
+          type: object
+        cartRestaurantId:
+          type: string
+          nullable: true
+        hasUsedFirstCoupon:
+          type: boolean
+
+    Restaurant:
+      type: object
+      properties:
+        _id:
+          type: string
+        restaurantName:
+          type: string
+        ownerName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        image:
+          type: string
+        isApproved:
+          type: boolean
+        rejected:
+          type: boolean
+        location:
+          $ref: '#/components/schemas/GeoPoint'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Food:
+      type: object
+      properties:
+        _id:
+          type: string
+        restaurantId:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        image:
+          type: string
+        category:
+          type: string
+          enum: [Biriyani, Rolls, Deserts, Sandwich, Cake, Pure Veg, Pasta, Noodles, Pizza, Snacks, Beverages, Breakfast, Chinese, Thali, Others]
+        prepTime:
+          type: number
+          nullable: true
+        spiceLevel:
+          type: string
+          enum: [Mild, Medium, Hot, Extra Hot]
+        tags:
+          type: array
+          items:
+            type: string
+        isAvailable:
+          type: boolean
+        avgRating:
+          type: number
+        ratingCount:
+          type: integer
+
+    OrderItem:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: integer
+
+    Order:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        restaurantId:
+          type: string
+        riderId:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        amount:
+          type: number
+        address:
+          $ref: '#/components/schemas/Address'
+        status:
+          type: string
+          enum: [Order Placed, Confirmed, Preparing Food, Ready for Pickup, Waiting for Rider, Rider Assigned, Picked Up, Out for Delivery, Delivered, Cancelled, Rejected]
+        date:
+          type: string
+          format: date-time
+        payment:
+          type: boolean
+        paymentMethod:
+          type: string
+          enum: [stripe, cod]
+        couponCode:
+          type: string
+        deliveredAt:
+          type: string
+          format: date-time
+          nullable: true
+        deliveryFee:
+          type: number
+        customerLocation:
+          $ref: '#/components/schemas/GeoPoint'
+        isQueued:
+          type: boolean
+        assignmentTries:
+          type: integer
+        cancelledBy:
+          type: string
+          enum: [customer, restaurant, system, admin]
+          nullable: true
+        cancelledAt:
+          type: string
+          format: date-time
+          nullable: true
+        stripeSessionId:
+          type: string
+          nullable: true
+        stripePaymentIntentId:
+          type: string
+          nullable: true
+        refunded:
+          type: boolean
+        refundId:
+          type: string
+          nullable: true
+        refundedAt:
+          type: string
+          format: date-time
+          nullable: true
+        refundFailed:
+          type: boolean
+        refundRetryCount:
+          type: integer
+        lastRefundError:
+          type: string
+          nullable: true
+        refundNeedsManualReview:
+          type: boolean
+        riderAssignmentFailed:
+          type: boolean
+
+    Rider:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        vehicleType:
+          type: string
+          enum: [Bike, Bicycle, Scooter]
+        vehicleNumber:
+          type: string
+        profileImage:
+          type: string
+        aadhaarImage:
+          type: string
+        licenseImage:
+          type: string
+        verificationStatus:
+          type: string
+          enum: [pending, approved, rejected]
+        isOnline:
+          type: boolean
+        isAvailable:
+          type: boolean
+        location:
+          allOf:
+            - $ref: '#/components/schemas/GeoPoint'
+            - type: object
+              properties:
+                updatedAt:
+                  type: string
+                  format: date-time
+                  nullable: true
+        totalEarnings:
+          type: number
+        lifetimeDeliveries:
+          type: integer
+        currentOrderId:
+          type: string
+          nullable: true
+
+    RiderEarningEntry:
+      type: object
+      properties:
+        _id:
+          type: string
+        riderId:
+          type: string
+        orderId:
+          type: string
+        distanceKm:
+          type: number
+        baseEarning:
+          type: number
+        bonusEarning:
+          type: number
+        totalEarning:
+          type: number
+        deliveredAt:
+          type: string
+          format: date-time
+
+    RiderAssignment:
+      type: object
+      properties:
+        _id:
+          type: string
+        orderId:
+          $ref: '#/components/schemas/Order'
+        riderId:
+          type: string
+        status:
+          type: string
+          enum: [pending, accepted, rejected, timeout, reassigned]
+        assignedAt:
+          type: string
+          format: date-time
+        respondedAt:
+          type: string
+          format: date-time
+          nullable: true
+        timeoutAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    Rating:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        foodId:
+          type: string
+        orderId:
+          type: string
+        stars:
+          type: integer
+          minimum: 1
+          maximum: 5
+
+    AdminAlert:
+      type: object
+      properties:
+        _id:
+          type: string
+        type:
+          type: string
+          example: refund_failed
+        orderId:
+          $ref: '#/components/schemas/Order'
+        message:
+          type: string
+        resolved:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    FeedbackSubmission:
+      type: object
+      properties:
+        _id:
+          type: string
+        type:
+          type: string
+          enum: [feedback, partner]
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        rating:
+          type: number
+        restaurant:
+          type: string
+        city:
+          type: string
+        message:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    DashboardStats:
+      type: object
+      properties:
+        totalRevenue:
+          type: number
+        totalOrders:
+          type: integer
+        totalFoods:
+          type: integer
+        totalUsers:
+          type: integer
+        recentOrders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+        monthlyRevenue:
+          type: array
+          items:
+            type: object
+            properties:
+              month:
+                type: string
+              revenue:
+                type: number
+
+  responses:
+    Unauthorized:
+      description: Missing, invalid, or wrong-role token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    BadRequest:
+      description: Request failed validation or business rule
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+paths:
+  /:
+    get:
+      tags: [System]
+      summary: Health check
+      security: []
+      responses:
+        '200':
+          description: API is running
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Yummix API Working
+
+  /api/user/register:
+    post:
+      tags: [Auth]
+      summary: Register a new customer account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/user/login:
+    post:
+      tags: [Auth]
+      summary: Customer login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/user/profile:
+    get:
+      tags: [Auth]
+      summary: Get the logged-in customer's profile
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Profile data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/admin/login:
+    post:
+      tags: [Admin]
+      summary: Super admin login
+      description: Uses the same user account as customers, gated by isAdmin=true
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/admin/dashboard:
+    get:
+      tags: [Admin]
+      summary: Platform-wide dashboard statistics
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Aggregated stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/DashboardStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/admin/restaurant-dashboard:
+    get:
+      tags: [Admin]
+      summary: Single restaurant's dashboard statistics
+      description: Gated by restaurant token, not admin token, despite the /admin prefix
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Restaurant-scoped stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      totalRevenue:
+                        type: number
+                      totalOrders:
+                        type: integer
+                      totalFoods:
+                        type: integer
+                      deliveredOrders:
+                        type: integer
+                      pendingOrders:
+                        type: integer
+                      recentOrders:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Order'
+                      monthlyRevenue:
+                        type: array
+                        items:
+                          type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/admin/retry-assignment:
+    post:
+      tags: [Admin]
+      summary: Force-retry rider assignment for a stuck order
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId]
+              properties:
+                orderId:
+                  type: string
+      responses:
+        '200':
+          description: Retry triggered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/admin/cancel-order:
+    post:
+      tags: [Admin]
+      summary: Force-cancel an order and issue a refund if applicable
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId]
+              properties:
+                orderId:
+                  type: string
+      responses:
+        '200':
+          description: Order cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/admin/refund-alerts:
+    get:
+      tags: [Admin]
+      summary: List unresolved refund failure alerts
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: List of alerts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminAlert'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/admin/refund-alerts/resolve:
+    post:
+      tags: [Admin]
+      summary: Mark a refund alert as resolved
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [alertId]
+              properties:
+                alertId:
+                  type: string
+      responses:
+        '200':
+          description: Alert resolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/restaurant/register:
+    post:
+      tags: [Restaurant]
+      summary: Register a new restaurant account
+      description: Creates the account in a pending state, awaiting admin approval
+      security: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [restaurantName, ownerName, email, password, phone, address, image]
+              properties:
+                restaurantName:
+                  type: string
+                ownerName:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                phone:
+                  type: string
+                address:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Registration submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/restaurant/login:
+    post:
+      tags: [Restaurant]
+      summary: Restaurant login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [restaurantName, phone, password]
+              properties:
+                restaurantName:
+                  type: string
+                phone:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/restaurant/pending:
+    get:
+      tags: [Restaurant]
+      summary: List restaurants awaiting approval
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Pending restaurants
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Restaurant'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/restaurant/approve:
+    post:
+      tags: [Restaurant]
+      summary: Approve a pending restaurant
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [restaurantId]
+              properties:
+                restaurantId:
+                  type: string
+      responses:
+        '200':
+          description: Restaurant approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/restaurant/reject:
+    post:
+      tags: [Restaurant]
+      summary: Reject a pending restaurant
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [restaurantId]
+              properties:
+                restaurantId:
+                  type: string
+      responses:
+        '200':
+          description: Restaurant rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/restaurant/list:
+    get:
+      tags: [Restaurant]
+      summary: List approved restaurants
+      description: Cached in Redis for 300s, invalidated on restaurant create/approve/reject/profile update
+      security: []
+      responses:
+        '200':
+          description: Approved restaurants
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Restaurant'
+
+  /api/restaurant/all:
+    get:
+      tags: [Restaurant]
+      summary: List all restaurants regardless of status
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: All restaurants
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Restaurant'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/restaurant/profile:
+    get:
+      tags: [Restaurant]
+      summary: Get the logged-in restaurant's profile
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Restaurant profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Restaurant'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/restaurant/profile/update:
+    post:
+      tags: [Restaurant]
+      summary: Update restaurant profile details
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                restaurantName:
+                  type: string
+                ownerName:
+                  type: string
+                phone:
+                  type: string
+                address:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/restaurant/location/update:
+    post:
+      tags: [Restaurant]
+      summary: Set the restaurant's exact geographic location
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lat, lng]
+              properties:
+                lat:
+                  type: number
+                lng:
+                  type: number
+      responses:
+        '200':
+          description: Location updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/food/list:
+    get:
+      tags: [Food]
+      summary: List all available food items across all restaurants
+      security: []
+      responses:
+        '200':
+          description: All available food items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Food'
+
+  /api/food/add:
+    post:
+      tags: [Food]
+      summary: Add a new food item to the restaurant's menu
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, description, price, category, image]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                category:
+                  type: string
+                prepTime:
+                  type: number
+                spiceLevel:
+                  type: string
+                tags:
+                  type: string
+                  description: JSON-stringified array
+                isAvailable:
+                  type: boolean
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Food added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Food'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/food/remove:
+    post:
+      tags: [Food]
+      summary: Remove a food item
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Food removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/food/restaurant-foods:
+    get:
+      tags: [Food]
+      summary: List all of the logged-in restaurant's own food items
+      description: Includes unavailable items, unlike the public menu endpoint
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Restaurant's food items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Food'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/food/update:
+    post:
+      tags: [Food]
+      summary: Update a food item, including availability toggling
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, name, description, price, category]
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                category:
+                  type: string
+                prepTime:
+                  type: number
+                spiceLevel:
+                  type: string
+                tags:
+                  type: string
+                  description: JSON-stringified array
+                isAvailable:
+                  type: boolean
+      responses:
+        '200':
+          description: Food updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/food/restaurant/{restaurantId}:
+    get:
+      tags: [Food]
+      summary: Get a specific restaurant's public menu
+      description: Cached in Redis for 300s, invalidated on any food add/update/remove for that restaurant
+      security: []
+      parameters:
+        - name: restaurantId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Menu items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Food'
+
+  /api/cart/get:
+    post:
+      tags: [Cart]
+      summary: Get the logged-in customer's cart
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Cart contents
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  cartData:
+                    type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/cart/add:
+    post:
+      tags: [Cart]
+      summary: Add an item to the cart
+      description: If the item belongs to a different restaurant than the current cart, the cart is replaced
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [itemId]
+              properties:
+                itemId:
+                  type: string
+      responses:
+        '200':
+          description: Item added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  cartReplaced:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/cart/remove:
+    post:
+      tags: [Cart]
+      summary: Remove one unit of an item from the cart
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [itemId]
+              properties:
+                itemId:
+                  type: string
+      responses:
+        '200':
+          description: Item removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/order/place:
+    post:
+      tags: [Order]
+      summary: Place an order and pay via Stripe Checkout
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [address, items, amount]
+              properties:
+                address:
+                  $ref: '#/components/schemas/Address'
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/OrderItem'
+                amount:
+                  type: number
+                couponCode:
+                  type: string
+                customerLocation:
+                  $ref: '#/components/schemas/GeoPoint'
+      responses:
+        '200':
+          description: Stripe checkout session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  session_url:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/order/place-cod:
+    post:
+      tags: [Order]
+      summary: Place a Cash on Delivery order
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [address, items, amount]
+              properties:
+                address:
+                  $ref: '#/components/schemas/Address'
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/OrderItem'
+                amount:
+                  type: number
+                couponCode:
+                  type: string
+                customerLocation:
+                  $ref: '#/components/schemas/GeoPoint'
+      responses:
+        '200':
+          description: Order placed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  orderId:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/order/verify:
+    post:
+      tags: [Order]
+      summary: Verify a Stripe payment after checkout redirect
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId, success]
+              properties:
+                orderId:
+                  type: string
+                success:
+                  type: string
+                  enum: ["true", "false"]
+      responses:
+        '200':
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+
+  /api/order/cancel:
+    post:
+      tags: [Order]
+      summary: Customer-initiated order cancellation
+      description: >
+        Only allowed while status is Order Placed, Confirmed, or Preparing
+        Food. Automatically refunds Stripe payments; refund outcome is
+        tracked independently of the cancellation itself.
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId]
+              properties:
+                orderId:
+                  type: string
+      responses:
+        '200':
+          description: Order cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/order/list:
+    get:
+      tags: [Order]
+      summary: List all orders platform-wide
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: All orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/order/userorders:
+    post:
+      tags: [Order]
+      summary: Get the logged-in customer's order history
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Order history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/order/status:
+    post:
+      tags: [Order]
+      summary: Generic admin status update
+      description: >
+        Cannot be used to set Cancelled or Rejected — use the dedicated
+        cancel endpoints, which also handle refunds.
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId, status]
+              properties:
+                orderId:
+                  type: string
+                status:
+                  type: string
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/order/restaurant-orders:
+    get:
+      tags: [Order]
+      summary: Get the logged-in restaurant's orders
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Restaurant's orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/order/restaurant-status:
+    post:
+      tags: [Order]
+      summary: Restaurant-side order status transition
+      description: >
+        Ownership-enforced: a restaurant may only move an order through
+        Order Placed → Confirmed → Preparing Food → Ready for Pickup, or
+        reject it. Moving to "Ready for Pickup" triggers automatic rider
+        assignment. Rejecting a paid order triggers an automatic refund.
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId, status]
+              properties:
+                orderId:
+                  type: string
+                status:
+                  type: string
+                  enum: [Confirmed, Preparing Food, Ready for Pickup, Rejected]
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Transition not allowed from the order's current status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rating/submit:
+    post:
+      tags: [Rating]
+      summary: Submit or update a star rating for a delivered food item
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [foodId, orderId, stars]
+              properties:
+                foodId:
+                  type: string
+                orderId:
+                  type: string
+                stars:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+      responses:
+        '200':
+          description: Rating submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  avgRating:
+                    type: number
+                  ratingCount:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rating/order/{orderId}:
+    post:
+      tags: [Rating]
+      summary: Get the customer's existing ratings for a specific order
+      security:
+        - tokenAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Map of foodId to stars already given
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    additionalProperties:
+                      type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider/register:
+    post:
+      tags: [Rider]
+      summary: Register a new rider account
+      description: Creates the account in a pending verification state
+      security: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, email, password, phone, vehicleNumber, profileImage, aadhaarImage, licenseImage]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                phone:
+                  type: string
+                vehicleType:
+                  type: string
+                vehicleNumber:
+                  type: string
+                profileImage:
+                  type: string
+                  format: binary
+                aadhaarImage:
+                  type: string
+                  format: binary
+                licenseImage:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Registration submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/rider/login:
+    post:
+      tags: [Rider]
+      summary: Rider login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider/profile:
+    get:
+      tags: [Rider]
+      summary: Get the logged-in rider's profile
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Rider profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Rider'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider/profile/update:
+    post:
+      tags: [Rider]
+      summary: Update rider profile details
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                phone:
+                  type: string
+                vehicleType:
+                  type: string
+                vehicleNumber:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider/change-password:
+    post:
+      tags: [Rider]
+      summary: Change the rider's password
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider/toggle-online:
+    post:
+      tags: [Rider]
+      summary: Toggle rider online/offline status
+      description: Going offline is blocked while a delivery is in progress
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Status toggled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  isOnline:
+                    type: boolean
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider/update-location:
+    post:
+      tags: [Rider]
+      summary: Update the rider's current GPS coordinates
+      description: Called by the rider app every 30 seconds while online
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lat, lng]
+              properties:
+                lat:
+                  type: number
+                lng:
+                  type: number
+      responses:
+        '200':
+          description: Location updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider/pending:
+    get:
+      tags: [Rider]
+      summary: List riders awaiting verification
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Pending riders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Rider'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider/approve:
+    post:
+      tags: [Rider]
+      summary: Approve a pending rider
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [riderId]
+              properties:
+                riderId:
+                  type: string
+      responses:
+        '200':
+          description: Rider approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider/reject:
+    post:
+      tags: [Rider]
+      summary: Reject a pending rider
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [riderId]
+              properties:
+                riderId:
+                  type: string
+      responses:
+        '200':
+          description: Rider rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider-order/assigned:
+    get:
+      tags: [Rider Order]
+      summary: Get the rider's currently assigned active order
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Current order, or null if none
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider-order/pending-assignment:
+    get:
+      tags: [Rider Order]
+      summary: Poll for a pending delivery assignment awaiting response
+      description: Polled by the rider app every 8 seconds
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Pending assignment, or null if none
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/RiderAssignment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider-order/accept:
+    post:
+      tags: [Rider Order]
+      summary: Accept a pending delivery assignment
+      description: Does not change order status — order remains "Rider Assigned" until pickup
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId]
+              properties:
+                orderId:
+                  type: string
+      responses:
+        '200':
+          description: Delivery accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider-order/reject:
+    post:
+      tags: [Rider Order]
+      summary: Reject a pending delivery assignment
+      description: Frees the rider and triggers reassignment to the next-nearest rider
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId]
+              properties:
+                orderId:
+                  type: string
+      responses:
+        '200':
+          description: Delivery rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider-order/update-status:
+    post:
+      tags: [Rider Order]
+      summary: Advance the delivery status
+      description: >
+        Rider may only set Picked Up, Out for Delivery, or Delivered.
+        Marking Delivered computes and records the rider's earnings for
+        this delivery.
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId, status]
+              properties:
+                orderId:
+                  type: string
+                status:
+                  type: string
+                  enum: [Picked Up, Out for Delivery, Delivered]
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  earning:
+                    type: object
+                    properties:
+                      baseEarning:
+                        type: number
+                      bonusEarning:
+                        type: number
+                      totalEarning:
+                        type: number
+                      distanceKm:
+                        type: number
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider-order/history:
+    get:
+      tags: [Rider Order]
+      summary: Get the rider's completed delivery history
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Delivery history, most recent 50
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rider-dashboard:
+    get:
+      tags: [Rider Dashboard]
+      summary: Get rider earnings summary and 7-day chart data
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      rider:
+                        $ref: '#/components/schemas/Rider'
+                      stats:
+                        type: object
+                        properties:
+                          todayEarnings:
+                            type: number
+                          weeklyEarnings:
+                            type: number
+                          monthlyEarnings:
+                            type: number
+                          lifetimeEarnings:
+                            type: number
+                          todayDeliveries:
+                            type: integer
+                          pendingDeliveries:
+                            type: integer
+                          totalDeliveries:
+                            type: integer
+                          nextBonusIn:
+                            type: integer
+                      dailyChart:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            day:
+                              type: string
+                            earnings:
+                              type: number
+                            deliveries:
+                              type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/contact/feedback:
+    post:
+      tags: [Feedback]
+      summary: Submit general customer feedback
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, message]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                rating:
+                  type: number
+                message:
+                  type: string
+      responses:
+        '200':
+          description: Feedback received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+
+  /api/contact/partner:
+    post:
+      tags: [Feedback]
+      summary: Submit a restaurant partner request
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, restaurant, phone, city]
+              properties:
+                name:
+                  type: string
+                restaurant:
+                  type: string
+                phone:
+                  type: string
+                city:
+                  type: string
+                message:
+                  type: string
+      responses:
+        '200':
+          description: Partner request received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+
+  /api/contact/list:
+    get:
+      tags: [Feedback]
+      summary: List all feedback and partner submissions
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: All submissions, most recent first
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FeedbackSubmission'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/cron/process-assignments:
+    get:
+      tags: [Cron]
+      summary: Scheduled maintenance sweep
+      description: >
+        Processes expired rider assignments (reassigns or auto-cancels past
+        MAX_ASSIGNMENT_RETRIES), retries orders stuck in "Waiting for
+        Rider", and retries failed refunds. Intended for Vercel Cron or an
+        equivalent external scheduler — not for interactive use.
+      security:
+        - cronAuth: []
+      responses:
+        '200':
+          description: Sweep completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  timedOut:
+                    type: integer
+                  refunds:
+                    type: object
+                    properties:
+                      checked:
+                        type: integer
+                      succeeded:
+                        type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'

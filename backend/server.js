@@ -17,6 +17,8 @@ import riderOrderRouter from "./routes/riderOrderRoute.js";
 import riderDashboardRouter from "./routes/riderDashboardRoute.js";
 import feedbackRouter from "./routes/feedbackRoute.js"
 import cronRouter from "./routes/cronRoute.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./config/swagger.js";
 
 const app = express();
 
@@ -38,6 +40,11 @@ app.use(
 
 app.options("*", cors());
 app.use(express.json());
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec)
+);
 
 await connectDB();
 

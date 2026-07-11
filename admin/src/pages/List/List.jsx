@@ -15,7 +15,7 @@ const SPICE_CONFIG = {
 const List = () => {
   const [list, setList]     = useState([]);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("All"); // All | Available | Unavailable
+  const [filter, setFilter] = useState("All");
   const navigate = useNavigate();
 
   const fetchList = async () => {
@@ -46,7 +46,6 @@ const List = () => {
     }
   };
 
-  // Toggle availability without going to edit page
   const toggleAvailability = async (item) => {
     try {
       const response = await axios.post(
@@ -89,21 +88,18 @@ const List = () => {
 
   return (
     <div className="list-page">
-      {/* Header */}
       <div className="list-header">
         <div>
           <h2>Food Inventory</h2>
           <p>{filteredList.length} of {list.length} items</p>
         </div>
         <div className="list-controls">
-          {/* Filter tabs */}
           <div className="filter-tabs">
             {["All", "Available", "Unavailable"].map((f) => (
               <button
                 key={f}
                 className={`filter-tab ${filter === f ? "active" : ""}`}
-                onClick={() => setFilter(f)}
-              >
+                onClick={() => setFilter(f)}>
                 {f}
                 <span className="filter-count">
                   {f === "All" ? list.length : f === "Available" ? availableCount : unavailableCount}
@@ -119,8 +115,6 @@ const List = () => {
           />
         </div>
       </div>
-
-      {/* Table */}
       <div className="modern-table">
         <div className="table-header">
           <b>Food</b>
@@ -138,7 +132,6 @@ const List = () => {
             const spice = SPICE_CONFIG[item.spiceLevel];
             return (
               <div key={item._id} className={`table-row ${item.isAvailable === false ? "row-unavailable" : ""}`}>
-                {/* Food cell */}
                 <div className="food-cell">
                   <img src={item.image} alt={item.name} />
                   <div>
@@ -148,7 +141,6 @@ const List = () => {
                         ? item.description.substring(0, 30) + "..."
                         : item.description}
                     </p>
-                    {/* Tags */}
                     {item.tags && item.tags.length > 0 && (
                       <div className="item-tags">
                         {item.tags.map((t) => (
@@ -158,13 +150,9 @@ const List = () => {
                     )}
                   </div>
                 </div>
-
-                {/* Category */}
                 <div>
                   <span className="category-badge">{item.category}</span>
                 </div>
-
-                {/* Details: spice + prep time */}
                 <div className="item-details">
                   {spice && (
                     <span
@@ -180,11 +168,7 @@ const List = () => {
                     </span>
                   )}
                 </div>
-
-                {/* Price */}
                 <h3 className="price">₹{item.price?.toFixed(2)}</h3>
-
-                {/* Availability toggle */}
                 <div>
                   <div
                     className={`avail-toggle ${item.isAvailable !== false ? "on" : "off"}`}
@@ -195,8 +179,6 @@ const List = () => {
                     <span>{item.isAvailable !== false ? "Live" : "Off"}</span>
                   </div>
                 </div>
-
-                {/* Action buttons */}
                 <div className="action-buttons">
                   <button
                     className="edit-btn"

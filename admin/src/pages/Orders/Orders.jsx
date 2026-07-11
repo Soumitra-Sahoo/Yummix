@@ -100,7 +100,6 @@ const Order = () => {
 
           return (
             <div key={index} className="modern-order-card">
-              {/* LEFT */}
               <div className="order-left">
                 <div className="order-icon-box">
                   <img src={assets.parcel_icon} alt="" />
@@ -150,8 +149,6 @@ const Order = () => {
                   </div>
                 </div>
               </div>
-
-              {/* RIGHT */}
               <div className="order-right">
                 <div className="order-stat">
                   <span>Items</span>
